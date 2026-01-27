@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - LPKA Kutoarjo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box text-center">
+            <img src="image/logo3.png" alt="Logo" height="80" class="mb-3">
+            <h4 class="fw-bold mb-4">Login Admin LPKA</h4>
+            <div class="form-group mb-3">
+                <input type="text" id="username" class="form-control" placeholder="Username">
+            </div>
+            <div class="form-group mb-3">
+                <input type="password" id="password" class="form-control" placeholder="Password">
+            </div>
+            <button class="btn btn-primary w-100 fw-bold" onclick="login()">MASUK</button>
+            <p id="login-error" class="text-danger mt-2 small" style="display:none;">Username/Password Salah!</p>
+        </div>
+    </div>
+
+    <div id="dashboard-wrapper" style="display:none;">
+        
+<nav id="sidebar" class="bg-gradient-primary shadow-lg" style="min-height:100vh; background: linear-gradient(135deg, #0d6efd 60%, #198754 100%); color: #fff;">
+    <div class="sidebar-header text-center py-4 border-bottom border-light">
+        <img src="image/logo3.png" alt="Logo" class="mb-2" style="height:48px; border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <h5 class="fw-bold m-0 mt-2" style="letter-spacing:1px;"></i> ADMIN PANEL</h5>
+        <div class="small text-light mt-1">LPKA Kutoarjo</div>
+    </div>
+    <ul class="list-unstyled components mt-4">
+        <li class="active">
+            <a href="#" onclick="switchTab('berita')" class="sidebar-link"><i class="fas fa-newspaper me-2"></i> Berita</a>
+        </li>
+        <li>
+            <a href="#" onclick="switchTab('banner')" class="sidebar-link"><i class="fas fa-images me-2"></i> Banner Slide</a>
+        </li>
+        <li>
+            <a href="#" onclick="switchTab('infopublik')" class="sidebar-link"><i class="fas fa-file-alt me-2"></i> Info Publik</a>
+        </li>
+        <li>
+            <a href="#" onclick="switchTab('pkbm')" class="sidebar-link"><i class="fas fa-school me-2"></i> Data PKBM</a>
+        </li>
+        <li>
+            <a href="#" onclick="switchTab('klinik')" class="sidebar-link"><i class="fas fa-clinic-medical me-2"></i> Data Klinik</a>
+        </li>
+        <li>
+            <a href="#" onclick="switchTab('reintegrasi')" class="sidebar-link"><i class="fas fa-hand-holding-heart me-2"></i> Reintegrasi</a>
+        </li>
+        <li>
+            <a href="#" onclick="switchTab('pejabat')" class="sidebar-link"><i class="fas fa-user-tie me-2"></i> Profil Pejabat</a>
+        </li>
+        <li>
+    <a href="#" onclick="switchTab('layanan_kunjungan')" class="sidebar-link">
+        <i class="fas fa-door-open me-2"></i> Layanan Kunjungan
+    </a>
+</li>
+    </ul>
+    <div class="sidebar-footer mt-auto p-3 border-top border-light">
+        <button class="btn btn-danger btn-sm w-100 fw-bold" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+</nav>
+
+        <div id="content">
+            <nav class="navbar navbar-light bg-light shadow-sm mb-4 rounded">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-primary btn-sm">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="d-flex align-items-center">
+                        <span id="db-status" class="badge bg-secondary me-3"><i class="fas fa-circle-notch fa-spin me-1"></i> Connecting...</span>
+                        <span class="fw-bold text-dark">Halo, Admin</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div id="tab-berita" class="tab-content active">
+                <h3 class="fw-bold mb-4">Manajemen Berita</h3>
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-primary text-white fw-bold">Input Berita Baru</div>
+                            <div class="card-body">
+                                <form id="form-berita">
+                                    <div class="mb-2"><label>Judul Berita</label><input type="text" name="judul" class="form-control" required></div>
+                                    <div class="mb-2"><label>Tanggal</label><input type="date" name="tanggal" class="form-control" required></div>
+                                    <div class="mb-2"><label>Ringkasan</label><textarea name="ringkasan" class="form-control" rows="2" required></textarea></div>
+                                    <div class="mb-2"><label>Isi Lengkap</label><textarea name="isi" class="form-control" rows="5" required></textarea></div>
+                                    
+                                    <div class="mb-2">
+                                        <label>Gambar Utama</label>
+                                        <input type="file" id="file-berita-1" class="form-control" accept="image/*">
+                                        <input type="hidden" name="gambar1" id="url-berita-1">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6 mb-2">
+                                            <label>Gambar 2 (Opsional)</label>
+                                            <input type="file" id="file-berita-2" class="form-control form-control-sm" accept="image/*">
+                                            <input type="hidden" name="gambar2" id="url-berita-2">
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label>Gambar 3 (Opsional)</label>
+                                            <input type="file" id="file-berita-3" class="form-control form-control-sm" accept="image/*">
+                                            <input type="hidden" name="gambar3" id="url-berita-3">
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success w-100 fw-bold"><i class="fas fa-save me-2"></i> SIMPAN BERITA</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>History Berita</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="initDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 600px;">
+                                    <table class="table table-striped table-hover mb-0" id="table-berita">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th style="width: 12%">Gambar</th>
+                                                <th style="width: 15%">Tanggal</th>
+                                                <th style="width: 48%">Judul</th>
+                                                <th style="width: 25%" class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody><tr><td colspan="4" class="text-center py-3">Memuat data...</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-banner" class="tab-content" style="display:none;">
+                <h3 class="fw-bold mb-4">Banner Slider</h3>
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-primary text-white fw-bold">Input Banner Baru</div>
+                            <div class="card-body">
+                                <form id="form-banner">
+                                    <div class="mb-2">
+                                        <label>Judul Banner</label>
+                                        <input type="text" name="judul" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Deskripsi Singkat</label>
+                                        <textarea name="deskripsi" class="form-control"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Upload Gambar Banner</label>
+                                        <input type="file" id="file-banner" class="form-control" accept="image/*">
+                                        <input type="hidden" name="gambar" id="url-banner">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="fas fa-save me-2"></i> SIMPAN BANNER</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>History Banner</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="initDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 600px;">
+                                    <table class="table table-striped table-hover mb-0" id="table-banner">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th style="width: 15%">Gambar</th>
+                                                <th style="width: 30%">Judul</th>
+                                                <th style="width: 40%">Deskripsi</th>
+                                                <th style="width: 15%" class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody><tr><td colspan="4" class="text-center py-3">Memuat data...</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="editBannerModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning">
+                                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2"></i>Edit Banner</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-edit-banner">
+                                    <input type="hidden" name="rowId" id="edit-banner-rowId">
+                                    <div class="mb-2">
+                                        <label>Judul Banner</label>
+                                        <input type="text" name="judul" id="edit-banner-judul" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Deskripsi Singkat</label>
+                                        <textarea name="deskripsi" id="edit-banner-deskripsi" class="form-control"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Ganti Gambar Banner</label>
+                                        <input type="file" id="edit-file-banner" class="form-control" accept="image/*">
+                                        <input type="hidden" name="gambar" id="edit-banner-gambar">
+                                        <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning w-100 fw-bold">UPDATE DATA</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-infopublik" class="tab-content" style="display:none;">
+                <h3 class="fw-bold mb-4">Dokumen Informasi Publik</h3>
+                <div class="row">
+                  <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                      <div class="card-header bg-primary text-white fw-bold">Input Dokumen Baru</div>
+                      <div class="card-body">
+                        <form id="form-infopublik">
+                          <div class="mb-2">
+                            <label>Kategori</label>
+                            <div class="input-group">
+                              <select name="kategori" id="kategori-infopublik" class="form-select"></select>
+                              <input type="text" id="kategori-infopublik-custom" class="form-control d-none" placeholder="Kategori baru...">
+                              <button type="button" class="btn btn-outline-secondary" id="btn-kategori-custom">Lainnya</button>
+                            </div>
+                          </div>
+                          <div class="mb-2"><label>Nama Dokumen</label><input type="text" name="judul" class="form-control" required></div>
+                          <div class="mb-2"><label>Deskripsi</label><textarea name="deskripsi" class="form-control"></textarea></div>
+                            <div class="mb-2">
+    <label>Upload File PDF</label>
+    <input type="file" id="file-infopublik-pdf" class="form-control" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+    <small class="text-muted fst-italic">Format: PDF, max 5MB.</small>
+</div>                        <div class="mb-3">
+                            <label>Cover Dokumen (Gambar)</label>
+                            <input type="file" id="file-infopublik" class="form-control" accept="image/*">
+                            <input type="hidden" name="gambar" id="url-infopublik">
+                          </div>
+                          <button type="submit" class="btn btn-primary w-100">Upload Dokumen</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-8">
+                    <div class="card shadow-sm border-0">
+                      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                        <span>History Dokumen</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="initDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                      </div>
+                      <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 600px;">
+                          <table class="table table-striped table-hover mb-0" id="table-infopublik">
+                            <thead class="table-dark sticky-top">
+                              <tr>
+                                <th style="width:5%">No</th>
+                                <th style="width:20%">Kategori</th>
+                                <th style="width:55%">Nama Dokumen</th>
+                                <th style="width:20%" class="text-center">Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody><tr><td colspan="4" class="text-center py-3">Memuat data...</td></tr></tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div id="tab-pkbm" class="tab-content" style="display:none;">
+                <h3 class="fw-bold mb-4">Manajemen Data PKBM</h3>
+                <div class="row g-4 mb-5">
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm border-0 mb-4">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 fw-bold" id="pkbm-form-title"><i class="fas fa-plus-circle me-2"></i>Input Data Statistik Baru</h5>
+                                <span class="badge bg-light text-dark" id="mode-indicator">Mode: Input Baru</span>
+                            </div>
+                            <div class="card-body bg-light">
+                                <form id="form-pkbm">
+                                    <input type="hidden" name="rowId" id="pkbm-rowId">
+                                    <div class="mb-3">
+                                        <label class="fw-bold mb-1">Tahun Data Statistik</label>
+                                        <input type="number" name="tahun" id="pkbm-tahun" class="form-control form-control-lg text-center fw-bold fs-4" required>
+                                    </div>
+                                    <div class="card border-primary mb-3">
+                                        <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold text-center">DATA PENDIDIK</div>
+                                        <div class="card-body">
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <label class="fw-bold mb-1">Laki-laki</label>
+                                                    <input type="number" name="guru_laki" id="pkbm-guru_laki" class="form-control">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="fw-bold mb-1">Perempuan</label>
+                                                    <input type="number" name="guru_perempuan" id="pkbm-guru_perempuan" class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <label class="fw-bold mb-1">Diploma</label>
+                                                    <input type="number" name="guru_diploma" id="pkbm-guru_diploma" class="form-control">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="fw-bold mb-1">Sarjana</label>
+                                                    <input type="number" name="guru_strata" id="pkbm-guru_strata" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card border-success mb-3">
+                                        <div class="card-header bg-success bg-opacity-10 text-success fw-bold text-center">DATA SISWA & LULUSAN</div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-6 border-end">
+                                                    <label class="fw-bold mb-1">Siswa Paket A</label>
+                                                    <input type="number" name="siswa_a" id="pkbm-siswa_a" class="form-control mb-2">
+                                                    <label class="fw-bold mb-1">Siswa Paket B</label>
+                                                    <input type="number" name="siswa_b" id="pkbm-siswa_b" class="form-control mb-2">
+                                                    <label class="fw-bold mb-1">Siswa Paket C</label>
+                                                    <input type="number" name="siswa_c" id="pkbm-siswa_c" class="form-control">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="fw-bold mb-1">Lulusan Paket A</label>
+                                                    <input type="number" name="lulus_a" id="pkbm-lulus_a" class="form-control mb-2">
+                                                    <label class="fw-bold mb-1">Lulusan Paket B</label>
+                                                    <input type="number" name="lulus_b" id="pkbm-lulus_b" class="form-control mb-2">
+                                                    <label class="fw-bold mb-1">Lulusan Paket C</label>
+                                                    <input type="number" name="lulus_c" id="pkbm-lulus_c" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-primary btn-lg fw-bold px-5 shadow-sm" id="btn-save-pkbm"><i class="fas fa-save me-2"></i>SIMPAN SEMUA DATA</button>
+                                        <button type="button" class="btn btn-secondary btn-lg ms-2 px-4" onclick="resetPKBMForm()" style="display:none;" id="btn-cancel-pkbm">Batal</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0 mb-4">
+                            <div class="card-header bg-white text-primary fw-bold">Tabel Tenaga Pendidik</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered align-middle text-center mb-0">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th colspan="2">Gender</th>
+                                            <th colspan="2">Pendidikan</th>
+                                            <th rowspan="2">Aksi</th>
+                                        </tr>
+                                        <tr>
+                                            <th>Laki-laki</th>
+                                            <th>Perempuan</th>
+                                            <th>Diploma</th>
+                                            <th>Sarjana</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-pkbm-tutor"></tbody>
+                                </table>
+                                <div id="total-tenaga-kependidikan" class="mt-3">
+                                    <div class="alert alert-info d-flex align-items-center justify-content-center gap-2 shadow-sm mb-0" role="alert" style="font-size:1.1rem;">
+                                        <i class="fas fa-users fa-lg text-primary"></i>
+                                        <span class="fw-bold">Jumlah Tenaga Kependidikan:</span>
+                                        <span id="jumlah-tenaga-kependidikan-badge" class="badge bg-primary bg-opacity-75 text-white px-3 py-2 fs-5"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white text-success fw-bold">Tabel Siswa & Lulusan</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle text-center mb-0">
+                                    <thead class="table-primary"></thead>
+                                        <tr>
+                                            <th rowspan="2" style="vertical-align: middle;">Tahun</th>
+                                            <th colspan="3">Siswa (Paket)</th>
+                                            <th colspan="3">Lulusan</th>
+                                            <th rowspan="2">Aksi</th>
+                                        </tr>
+                                        <tr>
+                                            <th>A</th>
+                                            <th>B</th>
+                                            <th>C</th>
+                                            <th>A</th>
+                                            <th>B</th>
+                                            <th>C</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-pkbm-siswa"></tbody>
+                                </table>
+                                <div class="my-4">
+                                    <canvas id="chartPKBMSiswaLulusan" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="card shadow border-0 h-100">
+                            <div class="card-header bg-primary text-white fw-bold d-flex align-items-center">
+                                <i class="fas fa-plus-circle me-2"></i> Tambah Galeri
+                            </div>
+                            <div class="card-body p-4">
+                                <form id="form-galeri-pkbm">
+                                    <input type="hidden" name="rowId" id="galeri-pkbm-rowId">
+                                    
+                                    <div class="mb-3">
+                                        <label class="fw-bold mb-1 text-secondary">Judul Foto</label>
+                                        <input type="text" name="judul" id="galeri-pkbm-judul" class="form-control form-control-lg" placeholder="Masukkan judul..." required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="fw-bold mb-1 text-secondary">Deskripsi</label>
+                                        <textarea name="deskripsi" id="galeri-pkbm-deskripsi" class="form-control" rows="3" placeholder="Keterangan foto..."></textarea>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="fw-bold mb-1 text-secondary">Pilih File Foto</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                            <input type="file" id="file-galeri-pkbm" class="form-control" accept="image/*">
+                                        </div>
+                                        <input type="hidden" name="gambar" id="url-galeri-pkbm">
+                                        <div id="preview-container" class="mt-2 text-center d-none">
+                                            <img id="img-preview" src="" class="img-thumbnail" style="max-height: 150px;">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" id="btn-save-galeri-pkbm" class="btn btn-primary fw-bold py-2">
+                                            <i class="fas fa-cloud-upload-alt me-1"></i> Simpan ke Galeri
+                                        </button>
+                                        <button type="button" id="btn-cancel-galeri-pkbm" class="btn btn-outline-secondary" style="display:none;" onclick="resetGaleriPKBMForm()">
+                                            Batal Edit
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-8">
+                        <div class="card shadow border-0 h-100">
+                            <div class="card-header bg-primary text-white fw-bold d-flex align-items-center justify-content-between">
+                                <div><i class="fas fa-table me-2"></i> Daftar Koleksi Foto</div>
+                                <span class="badge bg-secondary" id="count-galeri">Total: 0</span>
+                            </div>
+                            <div class="card-body p-0"> 
+                                <div class="table-responsive" style="max-height: 500px; min-height: 400px;">
+                                    <table class="table table-hover align-middle mb-0" id="table-galeri-pkbm-list">
+                                        <thead class="table-light sticky-top">
+                                            <tr>
+                                                <th class="ps-4" style="width: 100px;">Foto</th>
+                                                <th>Informasi Galeri</th>
+                                                <th class="text-center" style="width: 150px;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="table-galeri-pkbm">
+                                            <tr>
+                                                <td colspan="3" class="text-center py-5 text-muted">
+                                                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i><br>
+                                                    Memuat data...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> </div> <div id="tab-klinik" class="tab-content" style="display:none;">
+    <h3 class="fw-bold mb-4">Manajemen Data Klinik</h3>
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold" id="klinik-form-title"><i class="fas fa-plus-circle me-2"></i>Input Data Klinik Baru</h5>
+                    <span class="badge bg-light text-dark" id="klinik-mode-indicator">Mode: Input Baru</span>
+                </div>
+                <div class="card-body bg-light">
+                    <form id="form-klinik">
+                        <input type="hidden" name="rowId" id="klinik-rowId">
+                        <div class="mb-3">
+                            <label class="fw-bold mb-1">Tahun Data Klinik</label>
+                            <input type="number" name="tahun" id="klinik-tahun" class="form-control form-control-lg text-center fw-bold fs-4" required>
+                        </div>
+                        <div class="card border-success mb-3">
+                            <div class="card-header bg-success bg-opacity-10 text-success fw-bold text-center">DATA KUNJUNGAN PER BULAN</div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Januari</label>
+                                        <input type="number" name="stats_jan" id="klinik-jan" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Februari</label>
+                                        <input type="number" name="stats_feb" id="klinik-feb" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Maret</label>
+                                        <input type="number" name="stats_mar" id="klinik-mar" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">April</label>
+                                        <input type="number" name="stats_apr" id="klinik-apr" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Mei</label>
+                                        <input type="number" name="stats_mei" id="klinik-mei" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Juni</label>
+                                        <input type="number" name="stats_jun" id="klinik-jun" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Juli</label>
+                                        <input type="number" name="stats_juli" id="klinik-juli" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Agustus</label>
+                                        <input type="number" name="stats_agust" id="klinik-agust" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">September</label>
+                                        <input type="number" name="stats_sep" id="klinik-sep" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Oktober</label>
+                                        <input type="number" name="stats_okt" id="klinik-okt" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">November</label>
+                                        <input type="number" name="stats_nov" id="klinik-nov" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="fw-bold small">Desember</label>
+                                        <input type="number" name="stats_des" id="klinik-des" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card border-primary mb-3">
+                            <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold text-center">DATA TENAGA MEDIS</div>
+                            <div class="card-body">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Laki-laki</label>
+                                        <input type="number" name="medis_laki" id="klinik-medis-laki" class="form-control">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Perempuan</label>
+                                        <input type="number" name="medis_perempuan" id="klinik-medis-perempuan" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Dokter</label>
+                                        <input type="number" name="profesi_dokter" id="klinik-dokter" class="form-control">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Perawat</label>
+                                        <input type="number" name="profesi_perawat" id="klinik-perawat" class="form-control">
+                                    </div>
+                                    <div class="col-6 mt-2">
+                                        <label class="fw-bold mb-1">Ahli Gizi</label>
+                                        <input type="number" name="ahli_gizi" id="klinik-gizi" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="fw-bold mb-1">Jumlah ABH</label>
+                            <input type="number" name="jumlah_abh" id="klinik-abh" class="form-control">
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold px-5 shadow-sm" id="btn-save-klinik"><i class="fas fa-save me-2"></i>SIMPAN SEMUA DATA</button>
+                            <button type="button" class="btn btn-secondary btn-lg ms-2 px-4" onclick="resetKlinikForm()" style="display:none;" id="btn-cancel-klinik">Batal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white text-success fw-bold">Tabel Tenaga Medis</div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle text-center mb-0">
+                        <thead class="table-success">
+                                        <tr>
+                                            <th colspan="2">Gender</th>
+                                            <th colspan="3">Profesi</th>
+                                            <th rowspan="2">Aksi</th>
+                                        </tr>
+                                        <tr>
+                                            <th>Laki-laki</th>
+                                            <th>Perempuan</th>
+                                            <th>Dokter</th>
+                                            <th>Perawat</th>
+                                            <th>Ahli Gizi</th>
+                                        </tr>
+                        </thead>
+                        <tbody id="table-klinik-tenaga"></tbody>
+                    </table>
+                                                    <div id="total-tenaga-medis" class="mt-3">
+                                    <div class="alert alert-info d-flex align-items-center justify-content-center gap-2 shadow-sm mb-0" role="alert" style="font-size:1.1rem;">
+                                        <i class="fas fa-users fa-lg text-success"></i>
+                                        <span class="fw-bold">Jumlah Tenaga Medis:</span>
+                                        <span id="jumlah-tenaga-medis-badge" class="badge bg-primary bg-opacity-75 text-white px-3 py-2 fs-5"></span>
+                                    </div>
+                                </div>
+                </div>
+            </div>
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white text-primary fw-bold">Tabel Kunjungan Klinik per Bulan</div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center mb-0">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Tahun</th>
+                                <th>Jan</th>
+                                <th>Feb</th>
+                                <th>Mar</th>
+                                <th>Apr</th>
+                                <th>Mei</th>
+                                <th>Jun</th>
+                                <th>Jul</th>
+                                <th>Ags</th>
+                                <th>Sep</th>
+                                <th>Okt</th>
+                                <th>Nov</th>
+                                <th>Des</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-klinik-kunjungan"></tbody>
+                    </table>
+                    <div class="my-4">
+                        <canvas id="chartKlinikAdmin" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-lg-4 mb-3">
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-header bg-success text-white fw-bold">Upload Galeri Klinik</div>
+                <div class="card-body">
+                    <form id="form-galeri-klinik">
+                        <input type="hidden" name="rowId" id="galeri-klinik-rowId">
+                        <div class="mb-2"><label>Judul Foto</label><input type="text" name="judul" id="galeri-klinik-judul" class="form-control" required></div>
+                        <div class="mb-3"><label>Deskripsi</label><textarea name="deskripsi" id="galeri-klinik-deskripsi" class="form-control" rows="2"></textarea></div>
+                        <div class="mb-3">
+                            <label>Upload Foto</label>
+<input type="file" id="file-galeri-klinik" class="form-control" accept="image/*" required>
+<input type="hidden" name="gambar" id="url-galeri-klinik">
+                        </div>
+                        <button type="submit" id="btn-save-galeri-klinik" class="btn btn-dark w-100 fw-bold">Upload Galeri</button>
+                        <button type="button" id="btn-cancel-galeri-klinik" class="btn btn-secondary w-100 mt-2" style="display:none;" onclick="resetGaleriKlinikForm()">Batal Edit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-striped align-middle" id="table-galeri-klinik-list">
+                            <thead class="table-success sticky-top"><tr><th>Img</th><th>Judul</th><th>Aksi</th></tr></thead>
+                            <tbody><tr><td colspan="3">Memuat...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+            </div>
+
+<div id="tab-layanan_kunjungan" class="tab-content" style="display:none;">
+    <h3 class="fw-bold mb-4">Manajemen Layanan Kunjungan</h3>
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+            <span>Daftar Jadwal & Ketentuan Kunjungan</span>
+            <span class="badge bg-light text-primary"><i class="fas fa-info-circle"></i> Edit Data Tersedia</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 600px;">
+                <table class="table table-striped table-hover mb-0" id="table-layanan-kunjungan">
+                    <thead class="table-dark sticky-top">
+                        <tr>
+                            <th style="width:15%">Hari & Jam</th>
+                            <th style="width:25%">Syarat</th>
+                            <th style="width:25%">Himbauan</th>
+                            <th style="width:20%">Catatan</th>
+                            <th style="width:15%" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5" class="text-center py-3">Memuat data LayananKunjungan...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-primary shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+            <span>Standar Operasional Prosedur (SOP)</span> 
+            <button class="btn btn-sm btn-warning" onclick="showEditSOPModal()">
+                <i class="fas fa-cloud-upload-alt me-1"></i> Upload Dokumen SOP
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fas fa-link fa-lg text-primary"></i>
+                <a href="#" id="url_sop" target="_blank" class="fw-bold text-decoration-underline text-break"></a>
+            </div>
+            <small class="text-muted d-block mt-2">* Link ini akan muncul di halaman depan pengunjung.</small>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah/Edit Jadwal Kunjungan -->
+<div class="modal fade" id="modalKunjungan" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" id="form-kunjungan">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalKunjunganTitle">Tambah Jadwal Kunjungan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="rowId" id="kunjungan-rowId">
+                <div class="mb-2">
+                    <label>Hari & Jam</label>
+                    <textarea name="jadwal" id="kunjungan-jadwal" class="form-control" rows="4" placeholder="Contoh:&#10;Senin: 09.00 - 12.00&#10;Selasa: 08.00 - 14.00" required></textarea>
+                </div>
+                <div class="mb-2">
+                    <label>Syarat</label>
+                    <textarea name="syarat" id="kunjungan-syarat" class="form-control" rows="2" required></textarea>
+                </div>
+                <div class="mb-2">
+                    <label>Himbauan</label>
+                    <textarea name="himbauan" id="kunjungan-himbauan" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="mb-2">
+                    <label>Catatan</label>
+                    <textarea name="catatan" id="kunjungan-catatan" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary w-100 fw-bold">SIMPAN</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit SOP -->
+<div class="modal fade" id="modalEditSOP" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" id="form-edit-sop">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2"></i>Upload Dokumen SOP</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label>Upload File SOP (PDF)</label>
+                    <input type="file" id="edit-file-sop" class="form-control" accept=".pdf,application/pdf" required>
+                                        <input type="hidden" name="rowId" id="edit-sop-rowId">
+                    <input type="hidden" name="sop_url" id="edit-sop-url">
+
+                    <small class="text-muted fst-italic">Format: PDF, max 5MB.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-warning w-100 fw-bold">UPLOAD FILE</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- ...existing code... -->
+            <div id="tab-reintegrasi" class="tab-content" style="display:none;">
+                <h3 class="fw-bold mb-4">Layanan Reintegrasi</h3>
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-primary text-white fw-bold">Input Layanan Baru</div>
+                            <div class="card-body">
+                                <form id="form-reintegrasi">
+                                    <div class="mb-2"><label>Nama Layanan/Judul</label><input type="text" name="judul" class="form-control" required></div>
+                                    <div class="mb-2"><label>Deskripsi Layanan</label><textarea name="deskripsi" class="form-control" rows="3"></textarea></div>
+                                    <div class="mb-3">
+                                        <label>Upload Ilustrasi</label>
+                                       <input type="file" id="file-reintegrasi" class="form-control" accept="image/*" required>
+<input type="hidden" name="gambar" id="url-reintegrasi">                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Tambah Layanan</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>Histori Layanan Reintegrasi</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="initDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 600px;">
+                                    <table class="table table-striped table-hover mb-0" id="table-reintegrasi">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th style="width:5%">No</th>
+                                                <th style="width:15%">Gambar</th>
+                                                <th style="width:60%">Nama Layanan</th>
+                                                <th style="width:20%" class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td colspan="4" class="text-center py-3">Memuat data...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<div class="modal fade" id="editReintegrasiModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="form-edit-reintegrasi">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2"></i>Edit Layanan Reintegrasi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="rowId" id="edit-reintegrasi-rowId">
+                <div class="mb-2"><label>Nama Layanan/Judul</label><input type="text" name="judul" id="edit-reintegrasi-judul" class="form-control" required></div>
+                <div class="mb-2"><label>Deskripsi Layanan</label><textarea name="deskripsi" id="edit-reintegrasi-deskripsi" class="form-control" rows="3"></textarea></div>
+                <div class="mb-3">
+                    <label>Ganti Ilustrasi</label>
+<input type="file" id="edit-file-reintegrasi" class="form-control" accept="image/*">
+<input type="hidden" name="gambar" id="edit-url-reintegrasi">
+                    <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                </div>
+                <div class="mb-3 text-center">
+                    <img id="edit-preview-reintegrasi" src="https://placehold.co/100x100?text=Img" style="max-width:120px;max-height:80px;object-fit:cover;border-radius:4px;" alt="Preview">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-warning w-100 fw-bold">UPDATE DATA</button>
+            </div>
+        </form>
+    </div>
+</div>
+            <div id="tab-pejabat" class="tab-content" style="display:none;">
+                <h3 class="fw-bold mb-4">Profil Pejabat</h3>
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-primary text-white fw-bold">Input Pejabat Baru</div>
+                            <div class="card-body">
+                                <form id="form-pejabat">
+                                    <div class="mb-2"><label>Nama Lengkap</label><input type="text" name="nama" class="form-control" required></div>
+                                    <div class="mb-2"><label>Jabatan</label><input type="text" name="jabatan" class="form-control" required></div>
+<div class="mb-2">
+    <label>Pangkat</label>
+    <select name="kategori" class="form-control" required>
+        <option value="">-- Pilih Pangkat --</option>
+        <option value="Kepala">Kepala</option>
+        <option value="Eselon IVA">Eselon IVA</option>
+        <option value="Eselon V">Eselon V</option>
+    </select>
+</div>
+                                    <div class="mb-3">
+                                        <label>Foto Pejabat</label>
+                                        <input type="file" id="file-pejabat" class="form-control" accept="image/*" required>
+                                        <input type="hidden" name="gambar" id="url-pejabat">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="fas fa-save me-2"></i> SIMPAN DATA</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>Daftar Pejabat</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="initDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 600px;">
+                                    <table class="table table-striped table-hover mb-0" id="table-pejabat">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th style="width: 15%">Foto</th>
+                                                <th style="width: 30%">Nama</th>
+                                                <th style="width: 25%">Jabatan</th>
+                                                <th style="width: 15%">Pangkat</th>
+                                                <th style="width: 15%" class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody><tr><td colspan="5" class="text-center py-3">Memuat data...</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal fade" id="editPejabatModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2"></i>Edit Pejabat</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="form-edit-pejabat">
+                                <input type="hidden" name="rowId" id="edit-pejabat-rowId">
+                                
+                                <input type="hidden" name="gambar" id="edit-pejabat-gambar">
+                            
+                                <div class="mb-3">
+                                    <label>Nama Pejabat</label>
+                                    <input type="text" name="nama" id="edit-pejabat-nama" class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label>Jabatan</label>
+                                    <input type="text" name="jabatan" id="edit-pejabat-jabatan" class="form-control" required>
+                                </div>
+                            
+<div class="mb-3">
+    <label>Pangkat</label>
+    <select name="kategori" id="edit-pejabat-kategori" class="form-control" required>
+        <option value="">-- Pilih Pangkat --</option>
+        <option value="Kepala">Kepala</option>
+        <option value="Eselon IVA">Eselon IVA</option>
+        <option value="Eselon V">Eselon V</option>
+    </select>
+</div>
+                                <div class="mb-3">
+                                    <label>Foto (Biarkan kosong jika tidak diganti)</label>
+                                    <input type="file" id="edit-file-pejabat" class="form-control" accept="image/*">
+                                </div>
+                            
+                                <button type="submit" class="btn btn-warning">Update</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="spinner-border text-primary mx-auto mb-3" role="status"></div>
+                <h5 class="fw-bold">Sedang Mengupload & Menyimpan...</h5>
+                <p class="text-muted small">Mohon tunggu, proses upload gambar membutuhkan waktu.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editBeritaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2"></i>Edit Berita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-edit-berita">
+                        <input type="hidden" name="rowId" id="edit-rowId"> 
+                        <div class="mb-2"><label>Judul Berita</label><input type="text" name="judul" id="edit-judul" class="form-control" required></div>
+                        <div class="mb-2"><label>Tanggal</label><input type="date" name="tanggal" id="edit-tanggal" class="form-control" required></div>
+                        <div class="mb-2"><label>Ringkasan</label><textarea name="ringkasan" id="edit-ringkasan" class="form-control" rows="2" required></textarea></div>
+                        <div class="mb-2"><label>Isi Lengkap</label><textarea name="isi" id="edit-isi" class="form-control" rows="5" required></textarea></div>
+                        
+                        <div class="mb-2">
+                            <label>Ganti Gambar Utama</label>
+                            <input type="file" id="edit-file-gambar1" class="form-control" accept="image/*">
+                            <input type="hidden" name="gambar1" id="edit-gambar1">
+                            <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-2">
+                                <label>Ganti Gambar 2</label>
+                                <input type="file" id="edit-file-gambar2" class="form-control form-control-sm" accept="image/*">
+                                <input type="hidden" name="gambar2" id="edit-gambar2">
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label>Ganti Gambar 3</label>
+                                <input type="file" id="edit-file-gambar3" class="form-control form-control-sm" accept="image/*">
+                                <input type="hidden" name="gambar3" id="edit-gambar3">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">UPDATE DATA</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editGaleriPKBMModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Edit Galeri PKBM</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-edit-galeri-pkbm">
+                        <input type="hidden" name="rowId" id="edit-pkbm-galeri-rowId">
+                        <div class="mb-2"><label>Judul Foto</label><input type="text" name="judul" id="edit-pkbm-galeri-judul" class="form-control" required></div>
+                        <div class="mb-3"><label>Deskripsi</label><textarea name="deskripsi" id="edit-pkbm-galeri-deskripsi" class="form-control"></textarea></div>
+                        
+                        <div class="mb-3">
+                            <label>Ganti Foto</label>
+                            <input type="file" id="edit-file-pkbm-galeri" class="form-control" accept="image/*">
+                            <input type="hidden" name="gambar" id="edit-pkbm-galeri-gambar">
+                            <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100">UPDATE GALERI</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editGaleriKlinikModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="form-edit-galeri-klinik">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Edit Galeri Klinik</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="rowId" id="edit-galeri-klinik-rowId">
+                <div class="mb-2">
+                    <label>Judul Foto</label>
+                    <input type="text" name="judul" id="edit-galeri-klinik-judul" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label>Deskripsi</label>
+                    <textarea name="deskripsi" id="edit-galeri-klinik-deskripsi" class="form-control"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Ganti Foto</label>
+                    <input type="file" id="edit-file-galeri-klinik" class="form-control" accept="image/*">
+<input type="hidden" name="gambar" id="edit-url-galeri-klinik">
+                    <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                </div>
+                <button type="submit" id="edit-btn-save-galeri-klinik" class="btn btn-warning w-100 fw-bold">UPDATE GALERI</button>
+                <button type="button" id="edit-btn-cancel-galeri-klinik" class="btn btn-secondary w-100 mt-2" style="display:none;" onclick="resetEditGaleriKlinikForm()">BATAL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <div class="modal fade" id="editInfoPublikModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" id="form-edit-infopublik">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Dokumen Informasi Publik</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="rowId" id="edit-infopublik-rowId">
+        <div class="mb-2">
+          <label>Kategori</label>
+          <div class="input-group">
+            <select name="kategori" id="edit-kategori-infopublik" class="form-select"></select>
+            <input type="text" id="edit-kategori-infopublik-custom" class="form-control d-none" placeholder="Kategori baru...">
+            <button type="button" class="btn btn-outline-secondary" id="edit-btn-kategori-custom">Lainnya</button>
+          </div>
+        </div>div>
+        <div class="mb-2"><label>Nama Dokumen</label><input type="text" name="judul" id="edit-infopublik-judul" class="form-control" required></div>
+        <div class="mb-2"><label>Deskripsi</label><textarea name="deskripsi" id="edit-infopublik-deskripsi" class="form-control"></textarea></div>
+        <div class="mb-2">
+          <label>Upload File PDF</label>
+          <input type="file" id="edit-file-infopublik-pdf" class="form-control" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <input type="hidden" name="link" id="edit-url-infopublik-pdf">
+          <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti file.</small>
+        </div>
+        <div class="mb-3">
+          <label>Cover Dokumen (Gambar)</label>
+          <input type="file" id="edit-file-infopublik" class="form-control" accept="image/*">
+          <input type="hidden" name="gambar" id="edit-url-infopublik">
+          <small class="text-muted fst-italic">Biarkan kosong jika tidak ingin mengganti gambar.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning w-100">UPDATE DOKUMEN</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="modal-preview-dokumen" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-info text-white">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" id="modal-preview-dokumen-body" style="background: #f8f9fa; min-height: 400px;">
+                <div class="d-flex justify-content-center align-items-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-bold">
+                    <i class="fas fa-check-circle me-2"></i> Data Berhasil Disimpan & Diupload!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

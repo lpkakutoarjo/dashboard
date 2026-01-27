@@ -1,0 +1,186 @@
+/* ADMIN CSS */
+body {
+    background: #f4f6f9;
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+}
+
+/* Login Overlay */
+#login-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #003366 0%, #0056b3 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Sidebar */
+#sidebar {
+    min-width: 220px;
+    max-width: 220px;
+    min-height: 100vh;
+    background: #222e3c;
+    color: #fff;
+    transition: all 0.3s;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1040;
+}
+.sidebar-header {
+    padding: 20px;
+    background: #212529;
+    border-bottom: 1px solid #4b545c;
+}
+#sidebar ul.components {
+    padding: 20px 0;
+}
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1rem;
+    display: block;
+    color: #c2c7d0;
+    text-decoration: none;
+    transition: 0.3s;
+}
+#sidebar ul li a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+#sidebar ul li.active a {
+    color: #fff;
+    background: #007bff;
+}
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 20px;
+}
+
+/* Tambahan sidebar styling */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 60%, #198754 100%) !important;
+    color: #fff;
+}
+#sidebar .sidebar-link {
+    display: block;
+    padding: 12px 20px;
+    color: #fff;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+}
+#sidebar .sidebar-link:hover, #sidebar li.active .sidebar-link {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+#sidebar .sidebar-header img {
+    border: 2px solid #fff;
+}
+#sidebar .sidebar-footer {
+    border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Main Content */
+#content {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar { margin-left: -250px; }
+    #content { width: 100%; margin-left: 0; }
+    #sidebar.active { margin-left: 0; }
+}
+@media (max-width: 991.98px) {
+    #sidebar {
+        left: -220px;
+    }
+    #sidebar.active {
+        left: 0;
+    }
+    #dashboard-wrapper {
+        margin-left: 0;
+    }
+    #sidebar.active ~ #dashboard-wrapper {
+        margin-left: 220px;
+    }
+}
+
+/* Pastikan tombol sidebarCollapse selalu di atas sidebar */
+#sidebarCollapse {
+    position: relative;
+    z-index: 1100;
+}
+
+/* Pada layar kecil, letakkan tombol di atas sidebar */
+@media (max-width: 991.98px) {
+    #sidebarCollapse {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 1101;
+        /* Tambahan agar tidak tertutup konten lain */
+    }
+    .navbar .container-fluid {
+        position: relative;
+    }
+    #sidebar {
+        top: 0;
+    }
+}
+
+.card { border-radius: 10px; }
+label { font-weight: 500; font-size: 0.9rem; margin-bottom: 5px; color: #555; }
+.btn { border-radius: 8px; }
+ 
+/* Table Styling */
+.table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+#dashboard-wrapper.sidebar-collapsed {
+    margin-left: 0 !important;
+}
+
+/* Responsive table PKBM */
+@media (max-width: 767.98px) {
+    #tab-pkbm table th, #tab-pkbm table td {
+        font-size: 13px;
+        padding: 6px 4px;
+    }
+    #tab-pkbm table th[rowspan], #tab-pkbm table td[rowspan] {
+        writing-mode: vertical-lr;
+        text-align: center;
+        vertical-align: middle;
+        min-width: 32px;
+        max-width: 32px;
+        font-size: 12px;
+    }
+    #tab-pkbm .table-responsive {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Agar tabel tidak keluar layar di mobile */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
