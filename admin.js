@@ -1,9 +1,10 @@
 /* ADMIN JS - ULTIMATE IMAGE FIX (THUMBNAIL METHOD) */
 
 // URL GOOGLE SCRIPT (Pastikan URL ini sama dengan Web App URL Anda)
-const API_URL = 'https://script.google.com/macros/s/AKfycbw2I3yoN3pnaqLRBVSOtp_PCyIAGm-5pfvdmIVSJSDVpRN1FLyc4dJ-AjXtqKKj3wRm/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbxyeYGEIJ3MHytVXioIdgYXBJOvsWhinjRsVR4nbnczX0NxveaADMI-DaXhg6sUjfyo/exec'; 
 
 // Cache Data Global
+let globalUsersData = [];
 let globalBeritaData = [];
 let globalPKBMData = [];
 let globalGaleriPKBMData = [];
@@ -45,19 +46,56 @@ document.addEventListener('DOMContentLoaded', () => {
             loadLayananKunjungan();
         }
 
+async function fetchUsers() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                if (data.users) {
+                    globalUsersData = data.users;
+                }
+            } catch (e) {
+                console.error("Gagal mengambil data user:", e);
+            }
+        }
+
+
 // --- 1. OTENTIKASI ---
-function login() {
+async function login() {
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
+    const errorEl = document.getElementById('login-error'); //
     
-    if(u === 'admin' && p === 'admin') {
-        sessionStorage.setItem('isLoggedIn', 'true'); 
-        showDashboard();
-    } else {
-        document.getElementById('login-error').style.display = 'block';
-        const box = document.querySelector('.login-box');
-        box.classList.add('shake-animation');
-        setTimeout(() => box.classList.remove('shake-animation'), 500);
+    // Tampilkan loading saat mengecek
+    const btnLogin = document.querySelector("button[onclick='login()']");
+    const originalText = btnLogin.innerText;
+    btnLogin.innerText = "MENGECEK...";
+    btnLogin.disabled = true;
+
+    try {
+        // Ambil data terbaru dari API jika globalUsersData kosong
+        if (globalUsersData.length === 0) {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            globalUsersData = data.users || [];
+        }
+
+        // Cari kecocokan di data sheet
+        const userFound = globalUsersData.find(user => user.username === u && user.password === p);
+
+        if (userFound) {
+            sessionStorage.setItem('isLoggedIn', 'true'); 
+            showDashboard(); //
+        } else {
+            errorEl.style.display = 'block'; //
+            const box = document.querySelector('.login-box'); //
+            box.classList.add('shake-animation');
+            setTimeout(() => box.classList.remove('shake-animation'), 500);
+        }
+    } catch (error) {
+        alert("Terjadi kesalahan koneksi saat login.");
+    } finally {
+        btnLogin.innerText = originalText;
+        btnLogin.disabled = false;
     }
 }
 
@@ -327,6 +365,7 @@ function renderPKBMStats(data) {
     let h1='', h2='';
     let totalLaki = 0, totalPerempuan = 0, totalDiploma = 0, totalStrata = 0;
     
+    // Total tetap dihitung dari seluruh data asli
     data.forEach(item => {
         totalLaki += Number(item.guru_laki) || 0;
         totalPerempuan += Number(item.guru_perempuan) || 0;
@@ -338,25 +377,38 @@ function renderPKBMStats(data) {
 
     if (tTutorTotal) tTutorTotal.textContent = totalLaki + totalPerempuan;
 
-    // --- PERBAIKAN DI SINI ---
-    // 1. Sortir dari tahun terbaru (Descending)
-    // 2. Ambil hanya 5 data teratas (5 tahun terbaru)
-    const sorted = [...data]
-        .sort((a, b) => b.tahun - a.tahun)
+    // --- LOGIKA: SKIP DULU -> SORT DESC -> LIMIT 5 ---
+    
+    // 1. SKIP BARIS PERTAMA (Berdasarkan urutan masuk di Spreadsheet)
+    const skippedData = data.slice(1); 
+
+    // 2. SORT DESCENDING (Tahun terbaru di atas) & AMBIL 5 BARIS
+    const sorted = skippedData
+        .sort((a, b) => b.tahun - a.tahun) 
         .slice(0, 5); 
 
     sorted.forEach(item => {
-        h2 += `<tr><td class="fw-bold">${item.tahun}</td><td>${item.siswa_a||0}</td><td>${item.siswa_b||0}</td><td>${item.siswa_c||0}</td><td>${item.lulus_a||0}</td><td>${item.lulus_b||0}</td><td>${item.lulus_c||0}</td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editPKBMStats(${item.rowId})"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteData('PKBM', ${item.rowId})"><i class="fas fa-trash"></i></button></td></tr>`;
+        h2 += `<tr>
+            <td class="fw-bold">${item.tahun}</td>
+            <td>${item.siswa_a||0}</td>
+            <td>${item.siswa_b||0}</td>
+            <td>${item.siswa_c||0}</td>
+            <td>${item.lulus_a||0}</td>
+            <td>${item.lulus_b||0}</td>
+            <td>${item.lulus_c||0}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editPKBMStats(${item.rowId})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteData('PKBM', ${item.rowId})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
     });
-    // -------------------------
 
     tTutor.innerHTML = h1;
     tSiswa.innerHTML = h2;
 
+    // --- BAGIAN CHART ---
     const ctx = document.getElementById('chartPKBMSiswaLulusan');
     if (ctx) {
-        // Untuk Chart, biasanya lebih baik tetap menampilkan semua data agar tren terlihat,
-        // Tapi jika ingin Chart juga hanya 5 tahun, ganti 'data' di bawah menjadi 'sorted'
         const sortedAsc = [...data].sort((a, b) => a.tahun - b.tahun);
         const labels = sortedAsc.map(item => item.tahun);
         const siswa = sortedAsc.map(item => (Number(item.siswa_a)||0) + (Number(item.siswa_b)||0) + (Number(item.siswa_c)||0));
@@ -368,42 +420,16 @@ function renderPKBMStats(data) {
             data: {
                 labels: labels,
                 datasets: [
-                    { 
-                        label: 'Jumlah Siswa', 
-                        data: siswa, 
-                        borderColor: '#0d6efd', 
-                        backgroundColor: 'rgba(13,110,253,0.1)', 
-                        tension: 0.3, 
-                        fill: true 
-                    },
-                    { 
-                        label: 'Jumlah Lulusan', 
-                        data: lulusan, 
-                        borderColor: '#198754', 
-                        backgroundColor: 'rgba(25,135,84,0.1)', 
-                        tension: 0.3, 
-                        fill: true 
-                    }
+                    { label: 'Jumlah Siswa', data: siswa, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', tension: 0.3, fill: true },
+                    { label: 'Jumlah Lulusan', data: lulusan, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.3, fill: true }
                 ]
             },
-            options: { 
-                responsive: true, 
-                plugins: { 
-                    legend: { position: 'top' },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: '#333',
-                        font: { weight: 'bold' },
-                        formatter: function(value) { return value; }
-                    }
-                }, 
-                scales: { y: { beginAtZero: true } } 
-            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } },
             plugins: [ChartDataLabels]
         });
     }
 }
+
 function renderPKBMGallery(data) {
     const tbody = document.querySelector('#table-galeri-pkbm-list tbody');
     if(!tbody) return;
@@ -500,9 +526,14 @@ function renderKlinikKunjunganTable(data) {
     
     let html = '';
 
-    // 1. Urutkan data berdasarkan tahun (Descending/Terbaru ke Lama)
-    // 2. Ambil hanya 5 data pertama (5 tahun terbaru)
-    const latestData = data
+    // --- ALUR LOGIKA: SKIP -> SORT DESC -> LIMIT 5 ---
+    
+    // 1. SKIP baris pertama dari urutan asli spreadsheet
+    const skippedData = data.slice(1);
+
+    // 2. SORT berdasarkan tahun secara Descending (Terbaru ke Terlama)
+    // 3. SLICE untuk mengambil hanya 5 baris teratas hasil sortiran
+    const latestData = skippedData
         .sort((a, b) => b.tahun - a.tahun)
         .slice(0, 5);
 
@@ -1345,4 +1376,3 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
-
