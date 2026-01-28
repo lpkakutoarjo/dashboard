@@ -321,28 +321,42 @@ function renderPKBMStats(data) {
     const tTutor = document.getElementById('table-pkbm-tutor');
     const tSiswa = document.getElementById('table-pkbm-siswa');
     const tTutorTotal = document.getElementById('jumlah-tenaga-kependidikan-badge');
+    
     if(!tTutor || !tSiswa) return;
+    
     let h1='', h2='';
     let totalLaki = 0, totalPerempuan = 0, totalDiploma = 0, totalStrata = 0;
+    
     data.forEach(item => {
         totalLaki += Number(item.guru_laki) || 0;
         totalPerempuan += Number(item.guru_perempuan) || 0;
         totalDiploma += Number(item.guru_diploma) || 0;
         totalStrata += Number(item.guru_strata) || 0;
     });
+
     h1 = `<tr><td>${totalLaki}</td><td>${totalPerempuan}</td><td>${totalDiploma}</td><td>${totalStrata}</td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editPKBMStats('all')"><i class="fas fa-edit"></i></button></td></tr>`;
 
     if (tTutorTotal) tTutorTotal.textContent = totalLaki + totalPerempuan;
 
-    const sorted = [...data].sort((a,b) => b.tahun - a.tahun);
+    // --- PERBAIKAN DI SINI ---
+    // 1. Sortir dari tahun terbaru (Descending)
+    // 2. Ambil hanya 5 data teratas (5 tahun terbaru)
+    const sorted = [...data]
+        .sort((a, b) => b.tahun - a.tahun)
+        .slice(0, 5); 
+
     sorted.forEach(item => {
         h2 += `<tr><td class="fw-bold">${item.tahun}</td><td>${item.siswa_a||0}</td><td>${item.siswa_b||0}</td><td>${item.siswa_c||0}</td><td>${item.lulus_a||0}</td><td>${item.lulus_b||0}</td><td>${item.lulus_c||0}</td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editPKBMStats(${item.rowId})"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteData('PKBM', ${item.rowId})"><i class="fas fa-trash"></i></button></td></tr>`;
     });
+    // -------------------------
+
     tTutor.innerHTML = h1;
     tSiswa.innerHTML = h2;
 
     const ctx = document.getElementById('chartPKBMSiswaLulusan');
     if (ctx) {
+        // Untuk Chart, biasanya lebih baik tetap menampilkan semua data agar tren terlihat,
+        // Tapi jika ingin Chart juga hanya 5 tahun, ganti 'data' di bawah menjadi 'sorted'
         const sortedAsc = [...data].sort((a, b) => a.tahun - b.tahun);
         const labels = sortedAsc.map(item => item.tahun);
         const siswa = sortedAsc.map(item => (Number(item.siswa_a)||0) + (Number(item.siswa_b)||0) + (Number(item.siswa_c)||0));
@@ -390,7 +404,6 @@ function renderPKBMStats(data) {
         });
     }
 }
-
 function renderPKBMGallery(data) {
     const tbody = document.querySelector('#table-galeri-pkbm-list tbody');
     if(!tbody) return;
@@ -484,8 +497,16 @@ function renderKlinikTenagaTable(data) {
 function renderKlinikKunjunganTable(data) {
     const tbody = document.getElementById('table-klinik-kunjungan');
     if (!tbody) return;
+    
     let html = '';
-    data.slice().reverse().forEach(item => {
+
+    // 1. Urutkan data berdasarkan tahun (Descending/Terbaru ke Lama)
+    // 2. Ambil hanya 5 data pertama (5 tahun terbaru)
+    const latestData = data
+        .sort((a, b) => b.tahun - a.tahun)
+        .slice(0, 5);
+
+    latestData.forEach(item => {
         html += `<tr>
             <td class="fw-bold">${item.tahun || ''}</td>
             <td>${item.stats_jan || 0}</td>
@@ -506,6 +527,7 @@ function renderKlinikKunjunganTable(data) {
             </td>
         </tr>`;
     });
+
     tbody.innerHTML = html || '<tr><td colspan="14" class="text-center py-3">Belum ada data.</td></tr>';
 }
 // Override renderKlinikTable agar memanggil dua fungsi di atas
@@ -1323,3 +1345,4 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
