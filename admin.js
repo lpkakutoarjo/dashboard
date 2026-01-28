@@ -1,7 +1,7 @@
 /* ADMIN JS - ULTIMATE IMAGE FIX (THUMBNAIL METHOD) */
 
 // URL GOOGLE SCRIPT (Pastikan URL ini sama dengan Web App URL Anda)
-const API_URL = 'https://script.google.com/macros/s/AKfycby2t2M-ZSy661Gm35hSjDw-0UW0WE0E_Yt3oVvTWfnqLWTnguadZodWELOCGQ6wvleK/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbw2I3yoN3pnaqLRBVSOtp_PCyIAGm-5pfvdmIVSJSDVpRN1FLyc4dJ-AjXtqKKj3wRm/exec'; 
 
 // Cache Data Global
 let globalBeritaData = [];
@@ -11,7 +11,7 @@ let globalBannerData = [];
 let globalPejabatData = [];
 let globalKlinikData = [];
 let globalInfoPublikData = [];
-let globalGaleriKlinikData = []; 
+let globalGaleriKlinikData = []; // Tambahkan ini di bagian cache data global
 let globalReintegrasiData = [];
 let globalLayananKunjunganData = [];
 
@@ -92,7 +92,7 @@ async function initDashboard() {
     try {
         const response = await fetch(API_URL);
         const data = await response.json();
-        console.log('API Response:', data); // Tambahkan ini
+        console.log('API Response:', data); 
 
         statusEl.className = 'badge bg-success me-3';
         statusEl.innerHTML = '<i class="fas fa-check-circle me-1"></i> Terhubung';
@@ -113,7 +113,7 @@ async function initDashboard() {
             globalReintegrasiData = addRowIds(data.reintegrasi);
             renderReintegrasiTable(globalReintegrasiData);
         }
-        if (data.layanankunjungan) {
+if (data.layanankunjungan) {
             globalLayananKunjunganData = addRowIds(data.layanankunjungan);
             renderLayananKunjunganTable(globalLayananKunjunganData);
         }
@@ -166,6 +166,7 @@ async function loadLayananKunjungan() {
         if(typeof renderLayananKunjunganTable === 'function') renderLayananKunjunganTable([]);
     }
 }
+
 // --- FUNGSI HELPER FILE PROCESSING ---
 function processFileField(inputId, key, object) {
     return new Promise((resolve) => {
@@ -208,13 +209,13 @@ function convertDriveToDirectLink(url) {
     }
 
     // 3. Return Link Thumbnail Resolusi Tinggi (sz=w1000)
+    // Ini mendukung PNG Transparan dan jarang kena blokir 403
     if (id) {
         return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
     }
 
     return url;
 }
-
 function renderLayananKunjunganTable(data) {
     const tbody = document.querySelector('#table-layanan-kunjungan tbody');
     if (!tbody) return;
@@ -240,7 +241,7 @@ function renderLayananKunjunganTable(data) {
     });
     tbody.innerHTML = html;
 }
-
+// --- RENDER TABEL ---
 function renderBannerTable(data) {
     const tbody = document.querySelector('#table-banner tbody');
     if(!tbody) return;
@@ -507,14 +508,14 @@ function renderKlinikKunjunganTable(data) {
     });
     tbody.innerHTML = html || '<tr><td colspan="14" class="text-center py-3">Belum ada data.</td></tr>';
 }
-
+// Override renderKlinikTable agar memanggil dua fungsi di atas
 function renderKlinikTable(data) {
     renderKlinikTenagaTable(data);
     renderKlinikKunjunganTable(data);
 }
 
 function renderGaleriKlinik(data) {
-    globalGaleriKlinikData = data; 
+    globalGaleriKlinikData = data; // Simpan data ke variabel global
     const tbody = document.querySelector('#table-galeri-klinik-list tbody');
     if(!tbody) return;
     let html = '';
@@ -533,6 +534,7 @@ function renderGaleriKlinik(data) {
 }
 
 // --- INFO PUBLIK (RENDER & EDIT) ---
+
 function renderInfoPublikTable(data) {
 
     const tbody = document.querySelector('#table-infopublik tbody');
@@ -584,7 +586,6 @@ function renderInfoPublikTable(data) {
     `;
 }
 
-// --- 2. FUNGSI PREVIEW DOKUMEN (UPDATED: FORCE PREVIEW MODE) ---
 window.previewDokumen = function(url) {
     if (!url) {
         alert("Link dokumen tidak ditemukan!");
@@ -640,7 +641,6 @@ window.previewDokumen = function(url) {
             </div>`;
     }, { once: true });
 };
-
 // --- FUNGSI EDIT & BUKA MODAL ---
 
 window.openEditBannerModal = function(rowId) {
@@ -696,20 +696,26 @@ window.openEditPejabatModal = function(rowId) {
     if(modalEditPejabat) modalEditPejabat.show();
 }
 
+// Edit data klinik: tenaga medis saja
 window.editKlinikTenaga = function(rowId) {
     const item = globalKlinikData.find(x => x.rowId == rowId);
     if(!item) return;
     document.getElementById('klinik-rowId').value = item.rowId;
+
+    // Hanya isi field tenaga medis
     document.getElementById('klinik-medis-laki').value = item.medis_laki || '';
     document.getElementById('klinik-medis-perempuan').value = item.medis_perempuan || '';
     document.getElementById('klinik-dokter').value = item.profesi_dokter || '';
     document.getElementById('klinik-perawat').value = item.profesi_perawat || '';
     document.getElementById('klinik-gizi').value = item.ahli_gizi || '';
     document.getElementById('klinik-abh').value = item.jumlah_abh || '';
+
+    // Kosongkan field kunjungan dan tahun
     document.getElementById('klinik-tahun').value = '';
     ['jan','feb','mar','apr','mei','jun','juli','agust','sep','okt','nov','des'].forEach(bulan => {
         document.getElementById('klinik-' + bulan).value = '';
     });
+
     document.getElementById('klinik-tahun').readOnly = true;
     document.getElementById('klinik-form-title').innerHTML = `Edit Data Tenaga Medis`;
     document.getElementById('klinik-mode-indicator').innerText = "Mode: Edit Tenaga Medis";
@@ -717,23 +723,30 @@ window.editKlinikTenaga = function(rowId) {
     btn.innerHTML = 'UPDATE DATA';
     btn.className = 'btn btn-warning btn-lg fw-bold px-5 shadow-sm';
     document.getElementById('btn-cancel-klinik').style.display = 'inline-block';
+
     document.getElementById('form-klinik').scrollIntoView({behavior: 'smooth'});
 }
 
+// Edit data klinik: kunjungan bulanan saja
 window.editKlinikKunjungan = function(rowId) {
     const item = globalKlinikData.find(x => x.rowId == rowId);
     if(!item) return;
     document.getElementById('klinik-rowId').value = item.rowId;
+
+    // Isi field kunjungan bulanan dan tahun
     document.getElementById('klinik-tahun').value = item.tahun || '';
     ['jan','feb','mar','apr','mei','jun','juli','agust','sep','okt','nov','des'].forEach(bulan => {
         document.getElementById('klinik-' + bulan).value = item['stats_' + bulan] || '';
     });
+
+    // Kosongkan field tenaga medis
     document.getElementById('klinik-medis-laki').value = '';
     document.getElementById('klinik-medis-perempuan').value = '';
     document.getElementById('klinik-dokter').value = '';
     document.getElementById('klinik-perawat').value = '';
     document.getElementById('klinik-gizi').value = '';
     document.getElementById('klinik-abh').value = '';
+
     document.getElementById('klinik-tahun').readOnly = true;
     document.getElementById('klinik-form-title').innerHTML = `Edit Data Kunjungan Bulanan Tahun ${item.tahun || ''}`;
     document.getElementById('klinik-mode-indicator').innerText = "Mode: Edit Kunjungan Bulanan";
@@ -741,6 +754,7 @@ window.editKlinikKunjungan = function(rowId) {
     btn.innerHTML = 'UPDATE DATA';
     btn.className = 'btn btn-warning btn-lg fw-bold px-5 shadow-sm';
     document.getElementById('btn-cancel-klinik').style.display = 'inline-block';
+
     document.getElementById('form-klinik').scrollIntoView({behavior: 'smooth'});
 }
 
@@ -932,6 +946,7 @@ window.showEditSOPModal = function() {
     }
 };
 
+// --- VALIDASI FILE ---
 function validateDocFile(input) {
     const file = input.files[0];
     if (!file) return;
@@ -944,6 +959,7 @@ function validateDocFile(input) {
 document.getElementById('file-infopublik-pdf')?.addEventListener('change', function() { validateDocFile(this); });
 document.getElementById('edit-file-infopublik-pdf')?.addEventListener('change', function() { validateDocFile(this); });
 
+// --- UTILS DROPDOWN ---
 function updateKategoriDropdown(data) {
     const select = document.getElementById('kategori-infopublik');
     const selectEdit = document.getElementById('edit-kategori-infopublik');
@@ -986,18 +1002,15 @@ document.getElementById('edit-btn-kategori-custom')?.addEventListener('click', f
 
 // --- LOGIKA UTAMA: KIRIM DATA (SEND DATA) ---
 async function sendData(sheetName, formData, action = 'insert') {
-    // 1. Tampilkan Loading
+    
     if(modalLoading) modalLoading.show();
-
-    // 2. Sembunyikan Modal Form (Agar tidak menumpuk)
-    // Kita sembunyikan modal-modal lain yang terdaftar secara global
     if(modalEditBerita) modalEditBerita.hide();
     if(modalEditGaleri) modalEditGaleri.hide();
     if(modalEditBanner) modalEditBanner.hide();
     if(modalEditPejabat) modalEditPejabat.hide();
     if(modalEditInfoPublik) modalEditInfoPublik.hide();
-    
-    // KHUSUS SOP: Kita cari manual karena variabelnya tidak global
+
+        // KHUSUS SOP: Kita cari manual karena variabelnya tidak global
     const modalSOP = document.getElementById('modalEditSOP');
     if (modalSOP && typeof bootstrap !== 'undefined') {
         const instance = bootstrap.Modal.getInstance(modalSOP);
@@ -1018,7 +1031,6 @@ async function sendData(sheetName, formData, action = 'insert') {
         }
     });
 
-    // 4. Proses Upload File (Convert ke Base64)
     let filePromises = [];
     if (action !== 'delete') {
         if (sheetName === 'Berita') {
@@ -1085,7 +1097,7 @@ async function sendData(sheetName, formData, action = 'insert') {
             }
             delete object.gambar;
         }
-        // --- [FIX] BAGIAN KHUSUS SOP LAYANAN KUNJUNGAN ---
+                // --- [FIX] BAGIAN KHUSUS SOP LAYANAN KUNJUNGAN ---
         else if (sheetName === 'LayananKunjungan') {
             if (action === 'update') {
                 // Kita gunakan key 'url_sop' sesuai nama kolom di Spreadsheet
@@ -1097,34 +1109,22 @@ async function sendData(sheetName, formData, action = 'insert') {
         }
     }
 
-    // 5. Tunggu semua proses file selesai
     await Promise.all(filePromises);
 
-    // 6. Siapkan Parameter Kirim
     const params = new URLSearchParams();
     params.append('sheet', sheetName);
-    
-    if(sheetName === 'PKBM' && object.rowId === 'all') { 
-        action = 'update'; 
-        params.append('row', 2); 
-    } else { 
-        if(object.rowId) params.append('row', object.rowId); 
-    }
-    
+
+    if(sheetName === 'PKBM' && object.rowId === 'all') { action = 'update'; params.append('row', 2); } 
+    else { if(object.rowId) params.append('row', object.rowId); }
     params.append('action', action);
     params.append('data', JSON.stringify(object));
 
-    // 7. Kirim ke Server (Google Apps Script)
     try {
         const res = await fetch(API_URL, { method: 'POST', body: params });
         const json = await res.json();
-        
-        // Sembunyikan loading setelah selesai
         if(modalLoading) modalLoading.hide();
-        
         if(json.status === 'success') {
-            // [FIX] Pastikan Modal SOP benar-benar tertutup (Double Check)
-            if (modalSOP) {
+                        if (modalSOP) {
                 // Hapus class show dan style display manual untuk memaksa hilang
                 modalSOP.classList.remove('show');
                 modalSOP.style.display = 'none';
@@ -1135,26 +1135,18 @@ async function sendData(sheetName, formData, action = 'insert') {
                 document.body.style.overflow = ''; 
                 document.body.style.paddingRight = '';
             }
-
-            // Reset Form sesuai tipe
             if(sheetName === 'PKBM') {
                 resetPKBMForm();
             } else if(sheetName === 'Klinik') {
                 resetKlinikForm();
             } else if(action === 'insert') {
                 document.querySelectorAll('form').forEach(f => {
-                    if(!f.id.includes('edit')) { 
-                        f.reset(); 
-                        f.querySelectorAll('input[type="file"]').forEach(i => i.value = ''); 
-                    }
+                    if(!f.id.includes('edit')) { f.reset(); f.querySelectorAll('input[type="file"]').forEach(i => i.value = ''); }
                 });
             }
-            
-            showToast(); // Tampilkan notifikasi sukses
-            await initDashboard(); // Refresh data tabel
-        } else { 
-            alert("Gagal: " + json.message); 
-        }
+            showToast();
+            await initDashboard(); 
+        } else { alert("Gagal: " + json.message); }
     } catch (e) {
         if(modalLoading) modalLoading.hide();
         console.error(e);
@@ -1204,7 +1196,6 @@ document.getElementById('form-edit-pejabat')?.addEventListener('submit', functio
     e.preventDefault();
     sendData('Pejabat', new FormData(this), 'update');
 });
-
 document.getElementById('form-pkbm').addEventListener('submit', function(e){ e.preventDefault(); const id = document.getElementById('pkbm-rowId').value; sendData('PKBM', new FormData(this), id ? 'update' : 'insert'); });
 document.getElementById('form-berita').addEventListener('submit', function(e){ e.preventDefault(); sendData('Berita', new FormData(this)); });
 document.getElementById('form-edit-berita').addEventListener('submit', function(e){ e.preventDefault(); sendData('Berita', new FormData(this), 'update'); });
@@ -1218,9 +1209,14 @@ document.getElementById('form-klinik')?.addEventListener('submit', function(e) {
     sendData('Klinik', new FormData(this), rowId ? 'update' : 'insert');
 });
 document.getElementById('form-galeri-klinik')?.addEventListener('submit', function(e) { e.preventDefault(); const id = document.getElementById('galeri-klinik-rowId').value; sendData('galeri_klinik', new FormData(this), id ? 'update' : 'insert'); });
-document.getElementById('form-reintegrasi')?.addEventListener('submit', function(e) {
+document.getElementById('form-reintegrasi')?.addEventListener('submit', function(e) { e.preventDefault(); sendData('Reintegrasi', new FormData(this)); });
+document.getElementById('form-edit-galeri-klinik')?.addEventListener('submit', function(e) {
     e.preventDefault();
-    sendData('Reintegrasi', new FormData(this));
+    const id = document.getElementById('edit-galeri-klinik-rowId').value;
+    sendData('galeri_klinik', new FormData(this), id ? 'update' : 'insert');
+    if (typeof modalEditGaleriKlinik !== 'undefined' && modalEditGaleriKlinik) {
+        modalEditGaleriKlinik.hide();
+    }
 });
 document.getElementById('form-edit-reintegrasi')?.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -1256,6 +1252,9 @@ document.getElementById('url_sop')?.addEventListener('click', function(e) {
     window.previewDokumen(url);
 });
 
+
+
+// --- RENDER REINTEGRASI ---
 function renderReintegrasiTable(data) {
     const tbody = document.querySelector('#table-reintegrasi tbody');
     if (!tbody) return;
