@@ -378,24 +378,19 @@ function renderPKBMStats(data) {
     if (tTutorTotal) tTutorTotal.textContent = totalLaki + totalPerempuan;
 
     // --- LOGIKA: SKIP DULU -> SORT DESC -> LIMIT 5 ---
-    
-    // 1. SKIP BARIS PERTAMA (Berdasarkan urutan masuk di Spreadsheet)
     const skippedData = data.slice(1); 
 
-    // 2. SORT DESCENDING (Tahun terbaru di atas) & AMBIL 5 BARIS
     const sorted = skippedData
         .sort((a, b) => b.tahun - a.tahun) 
         .slice(0, 5); 
 
     sorted.forEach(item => {
+        // Kolom lulusan (lulus_a, lulus_b, lulus_c) telah dihapus dari baris tabel
         h2 += `<tr>
             <td class="fw-bold">${item.tahun}</td>
             <td>${item.siswa_a||0}</td>
             <td>${item.siswa_b||0}</td>
             <td>${item.siswa_c||0}</td>
-            <td>${item.lulus_a||0}</td>
-            <td>${item.lulus_b||0}</td>
-            <td>${item.lulus_c||0}</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary me-1" onclick="editPKBMStats(${item.rowId})"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-sm btn-danger" onclick="deleteData('PKBM', ${item.rowId})"><i class="fas fa-trash"></i></button>
@@ -412,7 +407,7 @@ function renderPKBMStats(data) {
         const sortedAsc = [...data].sort((a, b) => a.tahun - b.tahun);
         const labels = sortedAsc.map(item => item.tahun);
         const siswa = sortedAsc.map(item => (Number(item.siswa_a)||0) + (Number(item.siswa_b)||0) + (Number(item.siswa_c)||0));
-        const lulusan = sortedAsc.map(item => (Number(item.lulus_a)||0) + (Number(item.lulus_b)||0) + (Number(item.lulus_c)||0));
+        // Variabel lulusan tidak lagi digunakan di dalam datasets
 
         if (window.pkbmChart) window.pkbmChart.destroy();
         window.pkbmChart = new Chart(ctx.getContext('2d'), {
@@ -420,8 +415,15 @@ function renderPKBMStats(data) {
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Jumlah Siswa', data: siswa, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', tension: 0.3, fill: true },
-                    { label: 'Jumlah Lulusan', data: lulusan, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.3, fill: true }
+                    { 
+                        label: 'Jumlah Siswa', 
+                        data: siswa, 
+                        borderColor: '#0d6efd', 
+                        backgroundColor: 'rgba(13,110,253,0.1)', 
+                        tension: 0.3, 
+                        fill: true 
+                    }
+                    // Dataset Jumlah Lulusan telah dihapus
                 ]
             },
             options: { responsive: true, scales: { y: { beginAtZero: true } } },
@@ -429,7 +431,6 @@ function renderPKBMStats(data) {
         });
     }
 }
-
 function renderPKBMGallery(data) {
     const tbody = document.querySelector('#table-galeri-pkbm-list tbody');
     if(!tbody) return;
@@ -1376,3 +1377,4 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
