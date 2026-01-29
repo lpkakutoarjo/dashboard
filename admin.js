@@ -377,15 +377,13 @@ function renderPKBMStats(data) {
 
     if (tTutorTotal) tTutorTotal.textContent = totalLaki + totalPerempuan;
 
-    // --- LOGIKA: SKIP DULU -> SORT DESC -> LIMIT 5 ---
+    // --- LOGIKA TABEL: SKIP DULU -> SORT DESC -> LIMIT 5 ---
     const skippedData = data.slice(1); 
-
     const sorted = skippedData
         .sort((a, b) => b.tahun - a.tahun) 
         .slice(0, 5); 
 
     sorted.forEach(item => {
-        // Kolom lulusan (lulus_a, lulus_b, lulus_c) telah dihapus dari baris tabel
         h2 += `<tr>
             <td class="fw-bold">${item.tahun}</td>
             <td>${item.siswa_a||0}</td>
@@ -401,13 +399,17 @@ function renderPKBMStats(data) {
     tTutor.innerHTML = h1;
     tSiswa.innerHTML = h2;
 
-    // --- BAGIAN CHART ---
+    // --- BAGIAN CHART (LIMIT 5 TAHUN TERBARU) ---
     const ctx = document.getElementById('chartPKBMSiswaLulusan');
     if (ctx) {
-        const sortedAsc = [...data].sort((a, b) => a.tahun - b.tahun);
-        const labels = sortedAsc.map(item => item.tahun);
-        const siswa = sortedAsc.map(item => (Number(item.siswa_a)||0) + (Number(item.siswa_b)||0) + (Number(item.siswa_c)||0));
-        // Variabel lulusan tidak lagi digunakan di dalam datasets
+        // Ambil data, urutkan tahun terbaru, ambil 5, lalu balikkan lagi agar urutan tahun di grafik tetap naik (kiri ke kanan)
+        const last5Years = [...data]
+            .sort((a, b) => b.tahun - a.tahun)
+            .slice(0, 5)
+            .reverse();
+
+        const labels = last5Years.map(item => item.tahun);
+        const siswa = last5Years.map(item => (Number(item.siswa_a)||0) + (Number(item.siswa_b)||0) + (Number(item.siswa_c)||0));
 
         if (window.pkbmChart) window.pkbmChart.destroy();
         window.pkbmChart = new Chart(ctx.getContext('2d'), {
@@ -423,7 +425,6 @@ function renderPKBMStats(data) {
                         tension: 0.3, 
                         fill: true 
                     }
-                    // Dataset Jumlah Lulusan telah dihapus
                 ]
             },
             options: { responsive: true, scales: { y: { beginAtZero: true } } },
@@ -449,7 +450,13 @@ function renderKlinikChart(klinik) {
 
     if(!Array.isArray(globalKlinikData) || globalKlinikData.length === 0) return;
 
-    const sorted = [...globalKlinikData].sort((a, b) => (a.tahun || 0) - (b.tahun || 0));
+    // --- LOGIKA: SKIP BARIS PERTAMA -> SORT DESC -> LIMIT 5 -> REVERSE ---
+    const sorted = [...globalKlinikData]
+        .slice(1) // 1. Skip baris pertama
+        .sort((a, b) => (b.tahun || 0) - (a.tahun || 0)) // 2. Urutkan tahun terbaru di atas
+        .slice(0, 5) // 3. Ambil 5 data teratas
+        .reverse(); // 4. Balikkan agar grafik tampil dari tahun tertua ke terbaru
+
     const labels = sorted.map(item => item.tahun);
     const totals = sorted.map(item => {
         return ['stats_jan','stats_feb','stats_mar','stats_apr','stats_mei','stats_jun','stats_juli','stats_agust','stats_sep','stats_okt','stats_nov','stats_des']
@@ -487,7 +494,6 @@ function renderKlinikChart(klinik) {
         plugins: [ChartDataLabels]
     });
 }
-
 function renderKlinikTenagaTable(data) {
     const tbody = document.getElementById('table-klinik-tenaga');
     if (!tbody) return;
@@ -1377,4 +1383,5 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
