@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -112,7 +113,7 @@
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="btn btn-success w-100 fw-bold"><i class="fas fa-save me-2"></i> SIMPAN BERITA</button>
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="fas fa-save me-2"></i> SIMPAN BERITA</button>
                                 </form>
                             </div>
                         </div>
@@ -379,21 +380,22 @@
                         <div class="card shadow-sm border-0">
                             <div class="card-header bg-white text-success fw-bold">Tabel Siswa</div>
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle text-center mb-0">
-                                    <thead class="table-primary"></thead>
-                                        <tr>
-                                            <th rowspan="2" style="vertical-align: middle;">Tahun</th>
-                                            <th colspan="3">Siswa (Paket)</th>
-                                            <th rowspan="2">Aksi</th>
-                                        </tr>
-                                        <tr>
-                                            <th>A</th>
-                                            <th>B</th>
-                                            <th>C</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-pkbm-siswa"></tbody>
-                                </table>
+                       <table class="table table-hover table-bordered align-middle text-center mb-0">
+    <thead class="table-primary">
+        <tr>
+            <th rowspan="2" style="vertical-align: middle;">Tahun</th>
+            <th colspan="3">Siswa (Paket)</th>
+            <th rowspan="2" style="vertical-align: middle;">Aksi</th>
+        </tr>
+        <tr>
+            <th>A</th>
+            <th>B</th>
+            <th>C</th>
+        </tr>
+    </thead>
+    <tbody id="table-pkbm-siswa">
+        </tbody>
+</table>
                                 <div class="my-4">
                                     <canvas id="chartPKBMSiswaLulusan" height="100"></canvas>
                                 </div>
@@ -490,6 +492,35 @@
                             <label class="fw-bold mb-1">Tahun Data Klinik</label>
                             <input type="number" name="tahun" id="klinik-tahun" class="form-control form-control-lg text-center fw-bold fs-4" required>
                         </div>
+                                                <div class="card border-primary mb-3">
+                            <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold text-center">DATA TENAGA MEDIS</div>
+                            <div class="card-body">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Laki-laki</label>
+                                        <input type="number" name="medis_laki" id="klinik-medis-laki" class="form-control">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Perempuan</label>
+                                        <input type="number" name="medis_perempuan" id="klinik-medis-perempuan" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Dokter</label>
+                                        <input type="number" name="profesi_dokter" id="klinik-dokter" class="form-control">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1">Perawat</label>
+                                        <input type="number" name="profesi_perawat" id="klinik-perawat" class="form-control">
+                                    </div>
+                                    <div class="col-6 mt-2">
+                                        <label class="fw-bold mb-1">Ahli Gizi</label>
+                                        <input type="number" name="ahli_gizi" id="klinik-gizi" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card border-success mb-3">
                             <div class="card-header bg-success bg-opacity-10 text-success fw-bold text-center">DATA KUNJUNGAN PER BULAN</div>
                             <div class="card-body">
@@ -545,35 +576,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card border-primary mb-3">
-                            <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold text-center">DATA TENAGA MEDIS</div>
-                            <div class="card-body">
-                                <div class="row g-2 mb-2">
-                                    <div class="col-6">
-                                        <label class="fw-bold mb-1">Laki-laki</label>
-                                        <input type="number" name="medis_laki" id="klinik-medis-laki" class="form-control">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="fw-bold mb-1">Perempuan</label>
-                                        <input type="number" name="medis_perempuan" id="klinik-medis-perempuan" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="fw-bold mb-1">Dokter</label>
-                                        <input type="number" name="profesi_dokter" id="klinik-dokter" class="form-control">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="fw-bold mb-1">Perawat</label>
-                                        <input type="number" name="profesi_perawat" id="klinik-perawat" class="form-control">
-                                    </div>
-                                    <div class="col-6 mt-2">
-                                        <label class="fw-bold mb-1">Ahli Gizi</label>
-                                        <input type="number" name="ahli_gizi" id="klinik-gizi" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
                         <div class="mb-3">
                             <label class="fw-bold mb-1">Jumlah ABH</label>
                             <input type="number" name="jumlah_abh" id="klinik-abh" class="form-control">
@@ -1142,4 +1145,3 @@
     <script src="admin.js"></script>
 </body>
 </html>
-
