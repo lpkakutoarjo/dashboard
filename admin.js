@@ -105,7 +105,23 @@ function showDashboard() {
     initDashboard(); 
 }
 
-function logout() { sessionStorage.removeItem('isLoggedIn'); location.reload(); }
+function logout() {
+    Swal.fire({
+        title: 'Konfirmasi Keluar',
+        text: "Apakah Anda yakin ingin mengakhiri sesi ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Logout!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            sessionStorage.removeItem('isLoggedIn');
+            location.reload();
+        }
+    })
+}
 
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
@@ -432,6 +448,7 @@ function renderPKBMStats(data) {
         });
     }
 }
+
 function renderPKBMGallery(data) {
     const tbody = document.querySelector('#table-galeri-pkbm-list tbody');
     if(!tbody) return;
@@ -494,6 +511,7 @@ function renderKlinikChart(klinik) {
         plugins: [ChartDataLabels]
     });
 }
+
 function renderKlinikTenagaTable(data) {
     const tbody = document.getElementById('table-klinik-tenaga');
     if (!tbody) return;
@@ -844,46 +862,82 @@ window.resetEditGaleriKlinikForm = function() {
 }
 
 window.editPKBMStats = function(rowId) {
-    if(rowId === 'all') {
+    // 1. Ambil referensi elemen utama
+    const btnSave = document.getElementById('btn-save-pkbm');
+    const btnCancel = document.getElementById('btn-cancel-pkbm');
+    const formTitle = document.getElementById('pkbm-form-title');
+    const modeIndicator = document.getElementById('mode-indicator');
+    const inputTahun = document.getElementById('pkbm-tahun');
+    const rowIdField = document.getElementById('pkbm-rowId');
+    const formContainer = document.getElementById('form-pkbm');
+
+    // Cek apakah elemen kritikal ada, jika tidak ada, stop fungsi agar tidak error
+    if (!btnSave || !formContainer) {
+        console.error("Gagal memuat form: Elemen 'btn-save-pkbm' atau 'form-pkbm' tidak ditemukan di HTML.");
+        return;
+    }
+
+    // Fungsi pembantu untuk set value secara aman
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+
+    if (rowId === 'all') {
         let totalLaki = 0, totalPerempuan = 0, totalDiploma = 0, totalStrata = 0;
+        
         globalPKBMData.forEach(item => {
             totalLaki += Number(item.guru_laki) || 0;
             totalPerempuan += Number(item.guru_perempuan) || 0;
             totalDiploma += Number(item.guru_diploma) || 0;
             totalStrata += Number(item.guru_strata) || 0;
         });
-        document.getElementById('pkbm-rowId').value = 'all'; 
-        document.getElementById('pkbm-tahun').value = '';
-        document.getElementById('pkbm-tahun').readOnly = true;
-        document.getElementById('pkbm-guru_laki').value = totalLaki;
-        document.getElementById('pkbm-guru_perempuan').value = totalPerempuan;
-        document.getElementById('pkbm-guru_diploma').value = totalDiploma;
-        document.getElementById('pkbm-guru_strata').value = totalStrata;
-        ['pkbm-siswa_a','pkbm-siswa_b','pkbm-siswa_c','pkbm-lulus_a','pkbm-lulus_b','pkbm-lulus_c'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('pkbm-form-title').innerHTML = `Edit Data Tenaga Pendidik (Total)`;
-        document.getElementById('mode-indicator').innerText = "Mode: Edit Total Tenaga Pendidik";
-        const btn = document.getElementById('btn-save-pkbm');
-        btn.innerHTML = 'UPDATE DATA';
-        btn.className = 'btn btn-warning btn-lg fw-bold px-5 shadow-sm';
-        document.getElementById('btn-cancel-pkbm').style.display = 'inline-block';
-        document.getElementById('form-pkbm').scrollIntoView({behavior: 'smooth'});
-        return;
+
+        setVal('pkbm-rowId', 'all');
+        setVal('pkbm-tahun', '');
+        inputTahun.readOnly = true;
+
+        setVal('pkbm-guru_laki', totalLaki);
+        setVal('pkbm-guru_perempuan', totalPerempuan);
+        setVal('pkbm-guru_diploma', totalDiploma);
+        setVal('pkbm-guru_strata', totalStrata);
+
+        ['pkbm-siswa_a', 'pkbm-siswa_b', 'pkbm-siswa_c', 'pkbm-lulus_a', 'pkbm-lulus_b', 'pkbm-lulus_c'].forEach(id => setVal(id, ''));
+
+        formTitle.innerHTML = `Edit Data Tenaga Pendidik (Total)`;
+        modeIndicator.innerText = "Mode: Edit Total Tenaga Pendidik";
+
+    } else {
+        const item = globalPKBMData.find(x => x.rowId == rowId);
+        if (!item) {
+            Swal.fire('Error', 'Data tidak ditemukan.', 'error');
+            return;
+        }
+
+        setVal('pkbm-rowId', item.rowId);
+        setVal('pkbm-tahun', item.tahun);
+        inputTahun.readOnly = true;
+
+        ['pkbm-guru_laki', 'pkbm-guru_perempuan', 'pkbm-guru_diploma', 'pkbm-guru_strata'].forEach(id => setVal(id, ''));
+        
+        ['siswa_a', 'siswa_b', 'siswa_c', 'lulus_a', 'lulus_b', 'lulus_c'].forEach(key => {
+            setVal('pkbm-' + key, item[key] || '');
+        });
+
+        formTitle.innerHTML = `Edit Data Siswa & Lulusan Tahun ${item.tahun}`;
+        modeIndicator.innerText = "Mode: Edit Siswa & Lulusan";
     }
-    const item = globalPKBMData.find(x => x.rowId == rowId);
-    if(!item) { alert("Data tidak ditemukan."); return; }
-    document.getElementById('pkbm-rowId').value = item.rowId;
-    document.getElementById('pkbm-tahun').value = item.tahun;
-    document.getElementById('pkbm-tahun').readOnly = true; 
-    ['pkbm-guru_laki','pkbm-guru_perempuan','pkbm-guru_diploma','pkbm-guru_strata'].forEach(id => document.getElementById(id).value = '');
-    ['pkbm-siswa_a','pkbm-siswa_b','pkbm-siswa_c','pkbm-lulus_a','pkbm-lulus_b','pkbm-lulus_c'].forEach(id => document.getElementById(id).value = item[id.replace('pkbm-','')] || '');
-    document.getElementById('pkbm-form-title').innerHTML = `Edit Data Siswa & Lulusan Tahun ${item.tahun}`;
-    document.getElementById('mode-indicator').innerText = "Mode: Edit Siswa & Lulusan";
-    const btn = document.getElementById('btn-save-pkbm');
-    btn.innerHTML = 'UPDATE DATA';
-    btn.className = 'btn btn-warning btn-lg fw-bold px-5 shadow-sm';
-    document.getElementById('btn-cancel-pkbm').style.display = 'inline-block';
-    document.getElementById('form-pkbm').scrollIntoView({behavior: 'smooth'});
-}
+
+    // --- BAGIAN PENENTU TOMBOL MUNCUL ---
+    btnSave.innerHTML = 'UPDATE DATA';
+    btnSave.className = 'btn btn-warning btn-lg fw-bold px-5 shadow-sm';
+    
+    if (btnCancel) btnCancel.style.display = 'inline-block';
+    
+    // Pastikan container form tidak tersembunyi (jika menggunakan display:none sebelumnya)
+    formContainer.style.display = 'block'; 
+    formContainer.scrollIntoView({ behavior: 'smooth' });
+};
 
 window.resetPKBMForm = function() {
     document.getElementById('form-pkbm').reset();
@@ -1383,5 +1437,3 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
-
-
