@@ -1066,7 +1066,7 @@ function validateDocFile(input) {
     if (!file) return;
     const validTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
     if (!validTypes.includes(file.type)) { alert("File harus berupa PDF, DOC, atau DOCX!"); input.value = ''; return false; }
-    if (file.size > 5 * 1024 * 1024) { alert("Ukuran file maksimal 5MB!"); input.value = ''; return false; }
+    if (file.size > 50 * 1024 * 1024) { alert("Ukuran file maksimal 50MB!"); input.value = ''; return false; }
     return true;
 }
 
@@ -1264,7 +1264,7 @@ async function sendData(sheetName, formData, action = 'insert') {
     } catch (e) {
         if(modalLoading) modalLoading.hide();
         console.error(e);
-        alert("Gagal Kirim/Upload. File mungkin terlalu besar (Max 5MB) atau koneksi terputus.");
+        alert("Gagal Kirim/Upload. File mungkin terlalu besar (Max 50MB) atau koneksi terputus.");
     }
 }
 
@@ -1437,3 +1437,4 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
