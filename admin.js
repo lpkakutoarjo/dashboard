@@ -628,30 +628,32 @@ function renderInfoPublikTable(data) {
             previewBtn = `
                 <button class="btn btn-sm btn-info"
                     onclick="previewDokumen('${item.link}')">
-                    <i class="fas fa-eye"></i> Preview
+                    <i class="fas fa-eye"></i>
                 </button>
             `;
         }
 
         html += `
-            <tr>
-                <td>${idx + 1}</td>
-                <td>${item.kategori || '-'}</td>
-                <td>
-                    <div class="fw-semibold">${item.judul || '-'}</div>
-                    <div class="mt-1">${previewBtn}</div>
-                </td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-warning me-1"
-                        onclick="editInfoPublik(${item.rowId})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger"
-                        onclick="deleteData('InfoPublik', ${item.rowId})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
+<tr>
+    <td>${idx + 1}</td>
+    <td>${item.kategori || '-'}</td>
+    <td>
+        <div class="fw-semibold">${item.judul || '-'}</div>
+    </td>
+    <td class="text-center">
+        <div class="d-flex justify-content-center gap-1">
+            ${previewBtn}
+            <button class="btn btn-sm btn-warning"
+                onclick="editInfoPublik(${item.rowId})">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger"
+                onclick="deleteData('InfoPublik', ${item.rowId})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
         `;
     });
 
@@ -663,7 +665,6 @@ function renderInfoPublikTable(data) {
         </tr>
     `;
 }
-
 window.previewDokumen = function(url) {
     if (!url) {
         alert("Link dokumen tidak ditemukan!");
@@ -1437,4 +1438,5 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
