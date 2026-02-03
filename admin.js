@@ -317,22 +317,59 @@ function renderBannerTable(data) {
 
 function renderBeritaTable(data) {
     const tbody = document.querySelector('#table-berita tbody');
-    if(!tbody) return;
+    if (!tbody) return;
+
+    // 1. Validasi jika data kosong
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3">Belum ada data.</td></tr>';
+        return;
+    }
+
+    // 2. Sorting data berdasarkan tanggal terbaru (descending)
+    // Kita gunakan slice() agar tidak merusak array asli
+    const sortedData = data.slice().sort((a, b) => {
+        const dateA = new Date(a.tanggal);
+        const dateB = new Date(b.tanggal);
+        return dateB - dateA; // Tanggal terbaru dikurangi tanggal lama
+    });
+
     let html = '';
-    data.slice().reverse().forEach(item => {
-        let tgl = item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-';
-        let img = convertDriveToDirectLink(item.gambar1); 
-        html += `<tr>
-            <td><img src="${img}" style="width:60px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.onerror=null; this.src='https://placehold.co/100x100?text=Img';"></td>
-            <td>${tgl}</td>
-            <td>${item.judul}</td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-warning me-1" onclick="editBerita(${item.rowId})"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="deleteData('Berita', ${item.rowId})"><i class="fas fa-trash"></i></button>
+
+    // 3. Render data ke dalam HTML
+    sortedData.forEach(item => {
+        // Format Tanggal
+        const tgl = item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        }) : '-';
+
+        // Konversi Link Gambar
+        const img = convertDriveToDirectLink(item.gambar1);
+
+        html += `
+        <tr>
+            <td class="align-middle">
+                <img src="${img}" 
+                     style="width:60px; height:40px; object-fit:cover; border-radius:4px;" 
+                     onerror="this.onerror=null; this.src='https://placehold.co/100x100?text=No+Img';">
+            </td>
+            <td class="align-middle">${tgl}</td>
+            <td class="align-middle">${item.judul}</td>
+            <td class="text-center align-middle">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-sm btn-warning me-1" onclick="editBerita(${item.rowId})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteData('Berita', ${item.rowId})" title="Hapus">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </td>
         </tr>`;
     });
-    tbody.innerHTML = html || '<tr><td colspan="4" class="text-center py-3">Belum ada data.</td></tr>';
+
+    tbody.innerHTML = html;
 }
 
 function renderPejabatTable(data) {
@@ -1438,5 +1475,6 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
