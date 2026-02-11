@@ -327,33 +327,32 @@ function renderCapaianKinerja(dataPenyerapan, dataIKPA, dataSMART) {
         // --- LOGIKA OTOMATIS TAMBAH TAHUN BARU ---
         const tahunTersedia = listData.map(row => parseInt(row.tahun));
         if (!tahunTersedia.includes(tahunSekarang)) {
-            // Jika tahun sekarang belum ada di data, buat baris kosong virtual
             const barisBaru = {
                 tahun: tahunSekarang,
-                rowId: "new_" + Date.now(), // ID sementara agar tombol edit berfungsi
+                rowId: "new_" + Date.now(),
                 pagu: ""
             };
-            // Inisialisasi bulan-bulan kosong
             bulanKeys.forEach(bln => barisBaru[bln] = "");
-            
-            // Tambahkan ke urutan paling atas (awal array)
             listData.unshift(barisBaru);
         }
-        // ------------------------------------------
 
         let html = '';
-        // Urutkan tahun dari yang terbaru ke terlama
-        const tahunList = [...new Set(listData.map(row => row.tahun))].sort((a, b) => b - a);
+        
+        // --- PERBAIKAN: URUTKAN DAN AMBIL 5 TAHUN TERBARU ---
+        const tahunList = [...new Set(listData.map(row => row.tahun))]
+            .sort((a, b) => b - a) // Urutkan descending (terbaru di atas)
+            .slice(0, 5);          // AMBIL HANYA 5 DATA PERTAMA
 
         tahunList.forEach(tahun => {
             const row = listData.find(r => r.tahun == tahun) || {};
 
             html += `<tr id="row-${item.key}-${row.rowId}">`;
-            // Hidden input untuk tahun agar ikut terkirim saat save
-html += `<td class="fw-bold bg-light text-center" style="position: sticky; left: 0; z-index: 10;">
-            ${tahun}
-            <input type="hidden" class="input-tahun-${item.key}-${row.rowId}" data-key="tahun" value="${tahun}">
-         </td>`;
+            
+            // Kolom Tahun (Sticky)
+            html += `<td class="fw-bold bg-light text-center" style="position: sticky; left: 0; z-index: 10;">
+                        ${tahun}
+                        <input type="hidden" class="input-tahun-${item.key}-${row.rowId}" data-key="tahun" value="${tahun}">
+                     </td>`;
 
             // --- KOLOM PAGU ---
             if (item.showPagu) {
