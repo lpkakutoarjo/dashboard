@@ -1,7 +1,7 @@
 /* ADMIN JS - ULTIMATE IMAGE FIX (THUMBNAIL METHOD) */
 
 // URL GOOGLE SCRIPT (Pastikan URL ini sama dengan Web App URL Anda)
-const API_URL = 'https://script.google.com/macros/s/AKfycbxyeYGEIJ3MHytVXioIdgYXBJOvsWhinjRsVR4nbnczX0NxveaADMI-DaXhg6sUjfyo/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbzwxVv3hpgos4acksrSbjjSsvKBxKKwLb_EC8OWcEGoAR9LERsFuRfMGf7NOpm27_NW/exec'; 
 
 // Cache Data Global
 let globalUsersData = [];
@@ -15,9 +15,13 @@ let globalInfoPublikData = [];
 let globalGaleriKlinikData = []; // Tambahkan ini di bagian cache data global
 let globalReintegrasiData = [];
 let globalLayananKunjunganData = [];
+let globalPenyerapanData = [];
+let globalIKPAData = [];
+let globalSMARTData = [];
+
 
 // --- DEFINISI MODAL GLOBAL ---
-let modalEditBerita, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
+let modalEditBerita, modalCapaian, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Inisialisasi Modal
@@ -29,9 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('editInfoPublikModal')) modalEditInfoPublik = new bootstrap.Modal(document.getElementById('editInfoPublikModal'));
     if(document.getElementById('editGaleriKlinikModal')) modalEditGaleriKlinik = new bootstrap.Modal(document.getElementById('editGaleriKlinikModal'));
     if(document.getElementById('editReintegrasiModal')) modalEditReintegrasi = new bootstrap.Modal(document.getElementById('editReintegrasiModal'));
+    if(document.getElementById('modalCapaian')) modalCapaian = new bootstrap.Modal(document.getElementById('modalCapaian'));
     if(document.getElementById('tab-layanan_kunjungan') || document.getElementById('table-layanan-kunjungan')) {
         loadLayananKunjungan();
     }
+
     // 2. Cek Login Session
     if(sessionStorage.getItem('isLoggedIn') === 'true') showDashboard();
 
@@ -171,7 +177,13 @@ if (data.layanankunjungan) {
             globalLayananKunjunganData = addRowIds(data.layanankunjungan);
             renderLayananKunjunganTable(globalLayananKunjunganData);
         }
+// Tambahkan pengaman agar jika data kosong, tetap jadi array kosong []
+globalPenyerapanData = addRowIds(data.penyerapananggaran || []);
+globalIKPAData = addRowIds(data.ikpa || []);
+globalSMARTData = addRowIds(data.smart || []);
 
+// LANGSUNG PANGGIL RENDER
+renderCapaianKinerja(globalPenyerapanData, globalIKPAData, globalSMARTData);
     } catch (e) {
         console.error(e);
         statusEl.className = 'badge bg-danger me-3';
@@ -295,7 +307,282 @@ function renderLayananKunjunganTable(data) {
     });
     tbody.innerHTML = html;
 }
-// --- RENDER TABEL ---
+
+function renderCapaianKinerja(dataPenyerapan, dataIKPA, dataSMART) {
+    const config = [
+        { id: 'body-capaian-anggaran', data: dataPenyerapan, key: 'penyerapananggaran', showPagu: true },
+        { id: 'body-capaian-ikpa', data: dataIKPA, key: 'ikpa', showPagu: false },
+        { id: 'body-capaian-smart', data: dataSMART, key: 'smart', showPagu: false }
+    ];
+
+    const bulanKeys = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+    const tahunSekarang = new Date().getFullYear();
+
+    config.forEach(item => {
+        const tbody = document.getElementById(item.id);
+        if (!tbody) return;
+
+        let listData = item.data || [];
+        
+        // --- LOGIKA OTOMATIS TAMBAH TAHUN BARU ---
+        const tahunTersedia = listData.map(row => parseInt(row.tahun));
+        if (!tahunTersedia.includes(tahunSekarang)) {
+            // Jika tahun sekarang belum ada di data, buat baris kosong virtual
+            const barisBaru = {
+                tahun: tahunSekarang,
+                rowId: "new_" + Date.now(), // ID sementara agar tombol edit berfungsi
+                pagu: ""
+            };
+            // Inisialisasi bulan-bulan kosong
+            bulanKeys.forEach(bln => barisBaru[bln] = "");
+            
+            // Tambahkan ke urutan paling atas (awal array)
+            listData.unshift(barisBaru);
+        }
+        // ------------------------------------------
+
+        let html = '';
+        // Urutkan tahun dari yang terbaru ke terlama
+        const tahunList = [...new Set(listData.map(row => row.tahun))].sort((a, b) => b - a);
+
+        tahunList.forEach(tahun => {
+            const row = listData.find(r => r.tahun == tahun) || {};
+
+            html += `<tr id="row-${item.key}-${row.rowId}">`;
+            // Hidden input untuk tahun agar ikut terkirim saat save
+html += `<td class="fw-bold bg-light text-center" style="position: sticky; left: 0; z-index: 10;">
+            ${tahun}
+            <input type="hidden" class="input-tahun-${item.key}-${row.rowId}" data-key="tahun" value="${tahun}">
+         </td>`;
+
+            // --- KOLOM PAGU ---
+            if (item.showPagu) {
+                let formattedPagu = row.pagu ? Number(row.pagu.toString().replace(/[^0-9]/g, '')).toLocaleString('id-ID') : '';
+                html += `<td>
+                    <div class="input-group input-group-sm" style="min-width: 150px;">
+                        <span class="input-group-text bg-light">Rp</span>
+                        <input type="text" 
+                            class="form-control text-end input-pagu-${item.key}-${row.rowId}" 
+                            value="${formattedPagu}" 
+                            data-key="pagu" 
+                            readonly>
+                    </div>
+                </td>`;
+            }
+
+            // --- KOLOM BULAN ---
+            bulanKeys.forEach((bln) => {
+                const actualKey = Object.keys(row).find(k => k.toLowerCase().startsWith(bln)) || bln;
+                let value = row[actualKey] || ''; 
+                
+                if (item.key === 'penyerapananggaran') {
+                    let formattedVal = value !== '' ? Number(value.toString().replace(/[^0-9]/g, '')).toLocaleString('id-ID') : '';
+                    html += `<td>
+                        <div class="input-group input-group-sm" style="min-width: 140px;">
+                            <span class="input-group-text bg-light" style="font-size: 0.7rem;">Rp</span>
+                            <input type="text" 
+                                class="form-control text-end input-capaian-${item.key}-${row.rowId}" 
+                                value="${formattedVal}" 
+                                data-bulan="${actualKey}" 
+                                readonly>
+                        </div>
+                    </td>`;
+                } else {
+                    html += `<td>
+                        <input type="text" 
+                            class="form-control form-control-sm text-center input-capaian-${item.key}-${row.rowId}" 
+                            value="${value}" 
+                            data-bulan="${actualKey}" 
+                            style="min-width: 60px;"
+                            readonly>
+                    </td>`;
+                }
+            });
+
+            // --- KOLOM AKSI ---
+            html += `<td class="text-center" style="position: sticky; right: 0; background: white; z-index: 10;">
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-warning btn-edit-${item.key}-${row.rowId}" 
+                            onclick="aktifkanEditCapaian('${item.key}', '${row.rowId}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-success d-none btn-save-${item.key}-${row.rowId}" 
+                            onclick="saveCapaianDirect('${item.key}', '${row.rowId}')">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary d-none btn-cancel-${item.key}-${row.rowId}" 
+                            onclick="batalkanEditCapaian('${item.key}', '${row.rowId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </td></tr>`;
+        });
+
+        const colspan = bulanKeys.length + (item.showPagu ? 3 : 2);
+        tbody.innerHTML = html || `<tr><td colspan="${colspan}" class="text-center text-muted p-4">Data tidak ditemukan</td></tr>`;
+    });
+}
+function formatInputRibuan(e) {
+    let value = e.target.value.replace(/[^0-9]/g, ''); // Hapus semua karakter non-angka
+    if (value === "") {
+        e.target.value = "";
+        return;
+    }
+    // Ubah ke format ribuan Indonesia
+    e.target.value = Number(value).toLocaleString('id-ID');
+}
+
+function aktifkanEditCapaian(sheetName, rowId) {
+    const inputs = document.querySelectorAll(`.input-capaian-${sheetName}-${rowId}, .input-pagu-${sheetName}-${rowId}`);
+    
+    inputs.forEach(input => {
+        input.dataset.originalValue = input.value; 
+        input.removeAttribute('readonly');
+        input.style.backgroundColor = "#fff";
+        input.style.border = "1px solid #0d6efd";
+
+        // Tambahkan pemisah ribuan otomatis untuk penyerapan anggaran dan pagu
+        if (sheetName === 'penyerapananggaran' || input.dataset.key === 'pagu') {
+            // Pastikan value awal diformat ribuan saat mulai edit
+            if (input.value) {
+                let cleanVal = input.value.replace(/[^0-9]/g, '');
+                input.value = Number(cleanVal).toLocaleString('id-ID');
+            }
+            // Pasang event listener
+            input.addEventListener('input', formatInputRibuan);
+        }
+    });
+
+    // Tukar Tombol
+    document.querySelector(`.btn-edit-${sheetName}-${rowId}`).classList.add('d-none');
+    document.querySelector(`.btn-save-${sheetName}-${rowId}`).classList.remove('d-none');
+    document.querySelector(`.btn-cancel-${sheetName}-${rowId}`).classList.remove('d-none');
+}
+
+function batalkanEditCapaian(sheetName, rowId) {
+    const inputs = document.querySelectorAll(`.input-capaian-${sheetName}-${rowId}, .input-pagu-${sheetName}-${rowId}`);
+    
+    inputs.forEach(input => {
+        input.value = input.dataset.originalValue;
+        input.setAttribute('readonly', true);
+        input.style.backgroundColor = "transparent";
+        input.style.border = "none";
+        
+        // Lepas listener agar tidak berjalan saat readonly
+        input.removeEventListener('input', formatInputRibuan);
+    });
+
+    // Tukar Tombol Kembali
+    document.querySelector(`.btn-edit-${sheetName}-${rowId}`).classList.remove('d-none');
+    document.querySelector(`.btn-save-${sheetName}-${rowId}`).classList.add('d-none');
+    document.querySelector(`.btn-cancel-${sheetName}-${rowId}`).classList.add('d-none');
+}
+
+function saveCapaianDirect(sheetName, rowId) {
+    const inputs = document.querySelectorAll(`.input-capaian-${sheetName}-${rowId}, .input-pagu-${sheetName}-${rowId}, .input-tahun-${sheetName}-${rowId}`);
+    const dataUpdate = {};
+
+    inputs.forEach(input => {
+        const bln = input.getAttribute('data-bulan');
+        const key = input.getAttribute('data-key'); 
+        const targetKey = bln || key; 
+        
+        let rawValue = input.value;
+        
+        // Bersihkan format ribuan
+        if (sheetName === 'penyerapananggaran' || targetKey === 'pagu') {
+            rawValue = rawValue.toString().replace(/[^0-9]/g, ''); 
+        }
+        
+        dataUpdate[targetKey] = rawValue;
+    });
+
+    const isNewRow = rowId.toString().startsWith('new_');
+
+    Swal.fire({
+        title: 'Menyimpan ke Database...',
+        text: isNewRow ? 'Mendaftarkan tahun baru...' : 'Memperbarui data...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    const formData = new FormData();
+    // PERBAIKAN: Ubah 'create' menjadi 'insert' agar sesuai dengan pengecekan di doPost Anda
+    formData.append('action', isNewRow ? 'insert' : 'update'); 
+    formData.append('sheet', sheetName);
+    formData.append('row', isNewRow ? '' : rowId); 
+    formData.append('data', JSON.stringify(dataUpdate));
+
+    fetch(API_URL, { 
+        method: 'POST', 
+        body: formData 
+    })
+    .then(response => response.json()) // Pastikan mengolah response JSON
+    .then(result => {
+        if (result.status === "success") {
+            // Jika baris lama, update memori lokal
+            if (!isNewRow) {
+                updateGlobalDataAfterSave(sheetName, rowId, dataUpdate);
+            }
+
+            // Kembalikan tampilan ke mode readonly
+            inputs.forEach(input => {
+                input.setAttribute('readonly', true);
+                input.style.backgroundColor = "transparent";
+                input.style.border = "none";
+            });
+
+            // Tukar tombol
+            document.querySelector(`.btn-edit-${sheetName}-${rowId}`).classList.remove('d-none');
+            document.querySelector(`.btn-save-${sheetName}-${rowId}`).classList.add('d-none');
+            if (document.querySelector(`.btn-cancel-${sheetName}-${rowId}`)) {
+                document.querySelector(`.btn-cancel-${sheetName}-${rowId}`).classList.add('d-none');
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Data Tersimpan!',
+                text: result.message,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                // WAJIB: Jika baris baru, refresh total agar mendapat rowId asli dari Sheets
+                if (isNewRow && typeof loadAllData === 'function') {
+                    loadAllData();
+                }
+            });
+        } else {
+            throw new Error(result.message || "Gagal menyimpan");
+        }
+    })
+    .catch(err => {
+        console.error('Save error:', err);
+        Swal.fire('Gagal Simpan', err.toString(), 'error');
+    });
+}
+function updateGlobalDataAfterSave(sheetName, rowId, newData) {
+    // 1. Tentukan sumber data global yang mana yang akan diupdate
+    let source;
+    if (sheetName === 'penyerapananggaran') source = globalPenyerapanData;
+    else if (sheetName === 'ikpa') source = globalIKPAData;
+    else if (sheetName === 'smart') source = globalSMARTData;
+
+    if (!source) return;
+
+    // 2. Cari index data berdasarkan rowId
+    const index = source.findIndex(item => item.rowId == rowId);
+
+    if (index !== -1) {
+        // 3. Update data di memori dengan data baru tanpa menghapus data lama (merge)
+        source[index] = { ...source[index], ...newData };
+        
+        // 4. Render ulang semua tabel agar tampilan sinkron dengan data terbaru
+        renderCapaianKinerja(globalPenyerapanData, globalIKPAData, globalSMARTData);
+        
+        console.log(`Data ${sheetName} baris ${rowId} berhasil diupdate di memori.`);
+    }
+}
+
 function renderBannerTable(data) {
     const tbody = document.querySelector('#table-banner tbody');
     if(!tbody) return;
@@ -313,63 +600,28 @@ function renderBannerTable(data) {
         </tr>`;
     });
     tbody.innerHTML = html || '<tr><td colspan="4" class="text-center py-3">Belum ada data.</td></tr>';
+        document.getElementById('count-banner').innerText = data.length;
 }
 
 function renderBeritaTable(data) {
     const tbody = document.querySelector('#table-berita tbody');
-    if (!tbody) return;
-
-    // 1. Validasi jika data kosong
-    if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3">Belum ada data.</td></tr>';
-        return;
-    }
-
-    // 2. Sorting data berdasarkan tanggal terbaru (descending)
-    // Kita gunakan slice() agar tidak merusak array asli
-    const sortedData = data.slice().sort((a, b) => {
-        const dateA = new Date(a.tanggal);
-        const dateB = new Date(b.tanggal);
-        return dateB - dateA; // Tanggal terbaru dikurangi tanggal lama
-    });
-
+    if(!tbody) return;
     let html = '';
-
-    // 3. Render data ke dalam HTML
-    sortedData.forEach(item => {
-        // Format Tanggal
-        const tgl = item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        }) : '-';
-
-        // Konversi Link Gambar
-        const img = convertDriveToDirectLink(item.gambar1);
-
-        html += `
-        <tr>
-            <td class="align-middle">
-                <img src="${img}" 
-                     style="width:60px; height:40px; object-fit:cover; border-radius:4px;" 
-                     onerror="this.onerror=null; this.src='https://placehold.co/100x100?text=No+Img';">
-            </td>
-            <td class="align-middle">${tgl}</td>
-            <td class="align-middle">${item.judul}</td>
-            <td class="text-center align-middle">
-                <div class="btn-group" role="group">
-                    <button class="btn btn-sm btn-warning me-1" onclick="editBerita(${item.rowId})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteData('Berita', ${item.rowId})" title="Hapus">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+    data.slice().reverse().forEach(item => {
+        let tgl = item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-';
+        let img = convertDriveToDirectLink(item.gambar1); 
+        html += `<tr>
+            <td style="text-align: center;"><img src="${img}" style="width:60px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.onerror=null; this.src='https://placehold.co/100x100?text=Img';"></td>
+            <td>${tgl}</td>
+            <td style="text-align: justify;">${item.judul}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-warning me-1" onclick="editBerita(${item.rowId})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteData('Berita', ${item.rowId})"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     });
-
-    tbody.innerHTML = html;
+    tbody.innerHTML = html || '<tr><td colspan="4" class="text-center py-3">Belum ada data.</td></tr>';
+    document.getElementById('count-berita').innerText = data.length;
 }
 
 function renderPejabatTable(data) {
@@ -406,6 +658,7 @@ function renderPejabatTable(data) {
         </tr>`;
     });
     tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-3">Belum ada data.</td></tr>';
+            document.getElementById('count-pejabat').innerText = data.length;
 }
 
 function renderPKBMStats(data) {
@@ -701,7 +954,9 @@ function renderInfoPublikTable(data) {
             </td>
         </tr>
     `;
+      document.getElementById('count-infopublik').innerText = data.length;
 }
+
 window.previewDokumen = function(url) {
     if (!url) {
         alert("Link dokumen tidak ditemukan!");
@@ -1059,7 +1314,19 @@ window.editKunjungan = function(rowId) {
     document.getElementById('kunjungan-catatan').value = item.catatan || '';
 
     const titleEl = document.getElementById('modalKunjunganTitle');
-    if(titleEl) titleEl.innerText = "Edit Jadwal Kunjungan";
+    if (titleEl) {
+        titleEl.innerText = "Edit Jadwal Kunjungan";
+
+        // --- MENAMBAHKAN TEKS DI BAWAH JUDUL ---
+        // Cek dulu apakah pesan sudah ada agar tidak duplikat saat diklik berkali-kali
+        if (!document.getElementById('info-enter-hint')) {
+            const p = document.createElement('p');
+            p.id = 'info-enter-hint';
+            p.className = 'text-muted small mb-0 mt-1'; // Memberikan jarak atas tipis
+            p.innerHTML = '<i class="fas fa-info-circle text-primary"></i> Klik <b>Enter</b> untuk menambah poin/baris baru pada kolom input.';
+            titleEl.after(p); // Meletakkan elemen <p> tepat di bawah elemen judul
+        }
+    }
 
     const modalEl = document.getElementById('modalKunjungan');
     if (typeof bootstrap !== 'undefined') {
@@ -1302,7 +1569,7 @@ async function sendData(sheetName, formData, action = 'insert') {
     } catch (e) {
         if(modalLoading) modalLoading.hide();
         console.error(e);
-        alert("Gagal Kirim/Upload. File mungkin terlalu besar (Max 50MB) atau koneksi terputus.");
+        alert("Gagal Kirim/Upload. File mungkin terlalu besar atau koneksi terputus.");
     }
 }
 
@@ -1475,6 +1742,3 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
-
-
-
