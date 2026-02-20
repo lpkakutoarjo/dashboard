@@ -1,7 +1,7 @@
 /* ADMIN JS - ULTIMATE IMAGE FIX (THUMBNAIL METHOD) */
 
 // URL GOOGLE SCRIPT (Pastikan URL ini sama dengan Web App URL Anda)
-const API_URL = 'https://script.google.com/macros/s/AKfycbzwxVv3hpgos4acksrSbjjSsvKBxKKwLb_EC8OWcEGoAR9LERsFuRfMGf7NOpm27_NW/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbxhWCeTGS61Z0EMSCGEVX8C2GeAw9X53uqN724zpeiNUaghvhiN52g7E0Q7mzQV8eLb/exec'; 
 
 // Cache Data Global
 let globalUsersData = [];
@@ -18,10 +18,11 @@ let globalLayananKunjunganData = [];
 let globalPenyerapanData = [];
 let globalIKPAData = [];
 let globalSMARTData = [];
-
+let globalWargaBinaan = [];
+let globalKepegawaian = [];
 
 // --- DEFINISI MODAL GLOBAL ---
-let modalEditBerita, modalCapaian, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
+let modalEditBerita, modalCapaian, modalEditWB, modalEditKP, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Inisialisasi Modal
@@ -33,6 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('editInfoPublikModal')) modalEditInfoPublik = new bootstrap.Modal(document.getElementById('editInfoPublikModal'));
     if(document.getElementById('editGaleriKlinikModal')) modalEditGaleriKlinik = new bootstrap.Modal(document.getElementById('editGaleriKlinikModal'));
     if(document.getElementById('editReintegrasiModal')) modalEditReintegrasi = new bootstrap.Modal(document.getElementById('editReintegrasiModal'));
+    const elModalWB = document.getElementById('modalEditWargaBinaan');
+    const elModalKP = document.getElementById('modalEditKepegawaian');
+    
+    if (elModalWB) modalEditWB = new bootstrap.Modal(elModalWB);
+    if (elModalKP) modalEditKP = new bootstrap.Modal(elModalKP);
+
+    // Event Listener Form Submit
+    document.getElementById('form-update-wargabinaan')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendData('wargabinaan', new FormData(this), 'update');
+        if(modalEditWB) modalEditWB.hide();
+    });
+
+    document.getElementById('form-update-kepegawaian')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendData('kepegawaian', new FormData(this), 'update');
+        if(modalEditKP) modalEditKP.hide();
+    });    
     if(document.getElementById('modalCapaian')) modalCapaian = new bootstrap.Modal(document.getElementById('modalCapaian'));
     if(document.getElementById('tab-layanan_kunjungan') || document.getElementById('table-layanan-kunjungan')) {
         loadLayananKunjungan();
@@ -169,6 +188,17 @@ async function initDashboard() {
             renderInfoPublikTable(globalInfoPublikData);
             updateKategoriDropdown(globalInfoPublikData);
         }
+        // Ambil data dari sheet wargabinaan
+        if (data.wargabinaan) {
+            globalWargaBinaan = addRowIds(data.wargabinaan);
+            renderRekapWargaBinaan(globalWargaBinaan);
+        }
+
+        // Ambil data dari sheet kepegawaian
+        if (data.kepegawaian) {
+            globalKepegawaian = addRowIds(data.kepegawaian);
+            renderTableKepegawaian(globalKepegawaian);
+        }
         if(data.reintegrasi) {
             globalReintegrasiData = addRowIds(data.reintegrasi);
             renderReintegrasiTable(globalReintegrasiData);
@@ -189,6 +219,96 @@ renderCapaianKinerja(globalPenyerapanData, globalIKPAData, globalSMARTData);
         statusEl.className = 'badge bg-danger me-3';
         statusEl.innerHTML = '<i class="fas fa-times-circle me-1"></i> Disconnected';
     }
+}
+
+/// --- FUNGSI TAMBAH ROW ID (untuk identifikasi baris) ---
+function addRowIds(arr) {
+    return Array.isArray(arr) ? arr.map((item, i) => ({ ...item, rowId: item.rowId || (i + 2) })) : [];
+}
+function renderRekapWargaBinaan(data) {
+    const elAnak = document.getElementById('display-anak');
+    const elAB = document.getElementById('display-ab');
+    const elTotal = document.getElementById('display-total-wb');
+    
+    if (!elAnak || !elAB) return;
+
+    let totalAnak = 0;
+    let totalAB = 0;
+
+    data.forEach(item => {
+        // Ambil data dari kolom 'anak' dan 'anakbinaan'
+        totalAnak += parseInt(item.anak || 0);
+        totalAB += parseInt(item.anakbinaan || 0);
+    });
+
+    const grandTotal = totalAnak + totalAB;
+
+    // Tampilkan ke UI
+    elAnak.innerText = totalAnak.toLocaleString('id-ID');
+    elAB.innerText = totalAB.toLocaleString('id-ID');
+    
+    if (elTotal) {
+        elTotal.innerText = grandTotal.toLocaleString('id-ID');
+    }
+}
+function renderTableKepegawaian(data) {
+    const tbody = document.getElementById('display-table-jabatan-body');
+    const tfoot = document.getElementById('row-total-pegawai');
+    if (!tbody || !tfoot || data.length === 0) return;
+
+    // 1. Pisahkan baris terakhir (Total) dari data utama
+    // Kita asumsikan baris terakhir adalah baris total dari database
+    const dataUtama = data.slice(0, -1); 
+    const barisTotal = data[data.length - 1];
+
+    let html = '';
+    
+    // 2. Render data utama (Jabatan-jabatan)
+    dataUtama.forEach(item => {
+        const laki = parseInt(item.lakilaki || 0);
+        const perempuan = parseInt(item.perempuan || 0);
+        const jumlah = parseInt(item.jumlah || (laki + perempuan));
+
+        html += `
+            <tr>
+                <td class="text-start ps-3">${item.Jabatan || item.jabatan || '-'}</td>
+                <td>${laki}</td>
+                <td>${perempuan}</td>
+                <td class="fw-bold">${jumlah}</td>
+                <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditKepegawaian(${data.indexOf(item)})">
+                <i class="fas fa-edit"></i>
+            </button>
+        </td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = html;
+
+    // 3. Ambil nilai langsung dari baris terakhir database untuk Footer
+    const totalL = barisTotal.lakilaki || 0;
+    const totalP = barisTotal.perempuan || 0;
+    const totalSemua = barisTotal.jumlah || (parseInt(totalL) + parseInt(totalP));
+
+    tfoot.innerHTML = `
+        <td class="text-end pe-3 fw-bold">TOTAL KESELURUHAN</td>
+        <td class="fw-bold">${totalL}</td>
+        <td class="fw-bold">${totalP}</td>
+        <td class="bg-primary text-white fw-bold">${totalSemua}</td>
+    `;
+    document.getElementById('form-update-kepegawaian')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendData('kepegawaian', new FormData(this), 'update');
+    modalEditKP.hide();
+});
+}
+function openEditKepegawaian(index) {
+    const item = globalKepegawaian[index];
+    document.getElementById('edit-kp-rowid').value = item.rowId;
+    document.getElementById('edit-kp-jabatan').value = item.Jabatan || item.jabatan;
+    document.getElementById('edit-kp-l').value = item.lakilaki || 0;
+    document.getElementById('edit-kp-p').value = item.perempuan || 0;
+    modalEditKP.show();
 }
 async function loadLayananKunjungan() {
     try {
@@ -232,6 +352,7 @@ async function loadLayananKunjungan() {
         if(typeof renderLayananKunjunganTable === 'function') renderLayananKunjunganTable([]);
     }
 }
+
 
 // --- FUNGSI HELPER FILE PROCESSING ---
 function processFileField(inputId, key, object) {
@@ -1012,7 +1133,52 @@ window.previewDokumen = function(url) {
     }, { once: true });
 };
 // --- FUNGSI EDIT & BUKA MODAL ---
+// Fungsi untuk memicu modal Warga Binaan (bisa dipasang di tombol khusus)
+function openEditWargaBinaan() {
+    // Pastikan data global sudah terisi dari database
+    if (globalWargaBinaan && globalWargaBinaan.length > 0) {
+        const item = globalWargaBinaan[0]; // Rekap biasanya hanya 1 baris
+        
+        // Isi input form di modal dengan data saat ini
+        const inputRowId = document.getElementById('edit-wb-rowid');
+        const inputAnak = document.getElementById('edit-wb-anak');
+        const inputAB = document.getElementById('edit-wb-ab');
 
+        if (inputRowId) inputRowId.value = item.rowId || 2;
+        if (inputAnak) inputAnak.value = item.anak || 0;
+        if (inputAB) inputAB.value = item.anakbinaan || 0;
+
+        // Tampilkan Modal
+        if (modalEditWB) {
+            modalEditWB.show();
+        } else {
+            // Jika variabel modal belum terdefinisi, buat manual
+            modalEditWB = new bootstrap.Modal(document.getElementById('modalEditWargaBinaan'));
+            modalEditWB.show();
+        }
+    } else {
+        Swal.fire('Info', 'Data Warga Binaan belum termuat. Silakan tunggu atau refresh halaman.', 'info');
+    }
+}
+
+// Fungsi untuk memicu modal Kepegawaian per baris
+function openEditKepegawaian(index) {
+    const item = globalKepegawaian[index];
+    if (!item) return;
+
+    document.getElementById('edit-kp-rowid').value = item.rowId || '';
+    document.getElementById('edit-kp-jabatan').value = item.Jabatan || item.jabatan || '';
+    document.getElementById('edit-kp-l').value = item.lakilaki || 0;
+    document.getElementById('edit-kp-p').value = item.perempuan || 0;
+
+    if (modalEditKP) {
+        modalEditKP.show();
+    } else {
+        // Fallback jika instance belum tercipta
+        modalEditKP = new bootstrap.Modal(document.getElementById('modalEditKepegawaian'));
+        modalEditKP.show();
+    }
+}
 window.openEditBannerModal = function(rowId) {
     const item = globalBannerData.find(x => x.rowId == rowId);
     if(!item) return;
