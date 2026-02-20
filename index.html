@@ -64,6 +64,11 @@
             </a>
             <ul class="collapse list-unstyled bg-black bg-opacity-10" id="infoSubmenu">
                 <li>
+                    <a href="#" onclick="switchTab('datainformasi')" class="py-1 ps-5 d-block text-white text-decoration-none opacity-75" style="font-size: 0.95rem;">
+                        <i class="fas fa-database me-2 small"></i> Data dan Informasi
+                    </a>
+                </li>
+                <li>
                     <a href="#" onclick="switchTab('infopublik')" class="py-1 ps-5 d-block text-white text-decoration-none opacity-75" style="font-size: 0.95rem;">
                         <i class="fas fa-file-pdf me-2 small"></i> Info Publik
                     </a>
@@ -474,7 +479,141 @@
     </div>
 </div>
 
+<div id="tab-datainformasi" class="tab-content">
+    <div class="card shadow-sm border-0" style="border-radius: 20px;">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0 text-primary">
+                <i class="fas fa-info-circle me-2"></i>Data & Informasi Terkini
+            </h5>
+        </div>
 
+        <div class="card-body p-4">
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background: #f8f9fa;">
+<div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-dark border-start border-primary border-4 ps-2 mb-0">
+            REKAP ANAK DAN ANAK BINAAN
+        </h6>
+        <button class="btn btn-sm btn-primary shadow-sm" onclick="openEditWargaBinaan()">
+            <i class="fas fa-edit me-1"></i> Update Data
+        </button>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="p-3 bg-white rounded border text-center shadow-sm">
+                <label class="small text-muted d-block fw-bold">JUMLAH ANAK</label>
+                <h3 class="mb-0 fw-bold text-primary" id="display-anak">0</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-3 bg-white rounded border text-center shadow-sm">
+                <label class="small text-muted d-block fw-bold">JUMLAH ANAK BINAAN</label>
+                <h3 class="mb-0 fw-bold text-success" id="display-ab">0</h3>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="p-2 bg-light rounded border text-center shadow-sm">
+                <label class="small text-muted d-block fw-bold text-uppercase">Total Keseluruhan</label>
+                <h4 class="mb-0 fw-bold text-dark" id="display-total-wb">0</h4>
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+
+            <div class="card border-0 shadow-sm" style="border-radius: 15px; background: #f8f9fa;">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark border-start border-success border-4 ps-2 mb-3">
+                        DATA KEPEGAWAIAN
+                    </h6>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover bg-white border mb-0" style="border-radius: 10px; overflow: hidden;">
+                            <thead class="table-dark small text-center">
+                                <tr>
+                                    <th>Jabatan</th>
+                                    <th>Laki-laki (L)</th>
+                                    <th>Perempuan (P)</th>
+                                    <th>Total</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="display-table-jabatan-body" class="small text-center">
+                                </tbody>
+                            <tfoot class="table-light fw-bold text-center">
+                                <tr id="row-total-pegawai">
+                                    </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditWargaBinaan" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-users me-2"></i>Update Data Warga Binaan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-update-wargabinaan">
+                <div class="modal-body">
+                    <input type="hidden" name="rowId" id="edit-wb-rowid">
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Anak</label>
+                        <input type="number" name="anak" id="edit-wb-anak" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Anak Binaan</label>
+                        <input type="number" name="anakbinaan" id="edit-wb-ab" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditKepegawaian" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-user-tie me-2"></i>Update Data Kepegawaian</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-update-kepegawaian">
+                <div class="modal-body">
+                    <input type="hidden" name="rowId" id="edit-kp-rowid">
+                    <div class="mb-3">
+                        <label class="form-label">Jabatan</label>
+                        <input type="text" name="Jabatan" id="edit-kp-jabatan" class="form-control" readonly>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Laki-laki</label>
+                            <input type="number" name="lakilaki" id="edit-kp-l" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Perempuan</label>
+                            <input type="number" name="perempuan" id="edit-kp-p" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Update Jabatan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
             <div id="tab-pkbm" class="tab-content" style="display:none;">
                 <h3 class="fw-bold mb-4">Manajemen Data PKBM</h3>
                 <div class="row g-4 mb-5">
