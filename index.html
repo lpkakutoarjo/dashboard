@@ -806,7 +806,86 @@
                             </div>
                         </div>
                     </div>
-                </div> </div> <div id="tab-klinik" class="tab-content" style="display:none;">
+                </div> 
+            <div class="row g-4 mt-2">
+    <div class="col-lg-4">
+        <div class="card shadow border-0 h-100">
+            <div class="card-header bg-primary text-white fw-bold d-flex align-items-center">
+                <i class="fas fa-palette me-2"></i> Tambah Karya Anak
+            </div>
+            <div class="card-body p-4">
+                <form id="form-karya-anak">
+                    <input type="hidden" name="rowId" id="karya-anak-rowId">
+                    
+                    <div class="mb-3">
+                        <label class="fw-bold mb-1 text-secondary">Nama Karya</label>
+                        <input type="text" name="namakarya" id="karya-anak-judul" class="form-control form-control-lg" placeholder="Contoh: Lukisan Pemandangan..." required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="fw-bold mb-1 text-secondary">Deskripsi Karya</label>
+                        <textarea name="deskripsi" id="karya-anak-deskripsi" class="form-control" rows="3" placeholder="Ceritakan singkat tentang karya ini..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="fw-bold mb-1 text-secondary">Foto Hasil Karya</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-camera"></i></span>
+                            <input type="file" id="file-karya-anak" class="form-control" accept="image/*">
+                        </div>
+                        <input type="hidden" name="gambar" id="url-karya-anak">
+                        
+                        <div id="preview-karya-container" class="mt-2 text-center d-none">
+                            <img id="img-karya-preview" src="" class="img-thumbnail" style="max-height: 150px; border-radius: 8px;">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" id="btn-save-karya-anak" class="btn btn-success fw-bold py-2">
+                            <i class="fas fa-save me-1"></i> Simpan Karya
+                        </button>
+                        <button type="button" id="btn-cancel-karya-anak" class="btn btn-outline-secondary" style="display:none;" onclick="resetKaryaForm()">
+                            Batal Edit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow border-0 h-100">
+            <div class="card-header bg-success text-white fw-bold d-flex align-items-center justify-content-between">
+                <div><i class="fas fa-th-list me-2"></i> Daftar Karya Terpublikasi</div>
+                <span class="badge bg-light text-success" id="count-karya">Total: 0</span>
+            </div>
+            <div class="card-body p-0"> 
+                <div class="table-responsive" style="max-height: 500px; min-height: 400px;">
+                    <table class="table table-hover align-middle mb-0" id="table-karya-list">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th class="ps-4" style="width: 120px;">Karya</th>
+                                <th>Detail Karya</th>
+                                <th class="text-center" style="width: 150px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-karya-body">
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-muted">
+                                    <i class="fas fa-paint-brush fa-spin fa-2x mb-3"></i><br>
+                                    Menghubungkan ke galeri...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+            </div> 
+                
+                <div id="tab-klinik" class="tab-content" style="display:none;">
     <h3 class="fw-bold mb-4">Manajemen Data Klinik</h3>
     <div class="row g-4 mb-5">
         <div class="col-lg-4">
@@ -1412,7 +1491,48 @@
             </div>
         </div>
     </div>
+<div class="modal fade" id="editGaleriKaryaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-edit me-2"></i>Edit Galeri Karya Anak
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit-galeri-karya">
+                    <input type="hidden" name="rowId" id="edit-karya-galeri-rowId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Judul Karya</label>
+                        <input type="text" name="namakarya" id="edit-karya-galeri-namakarya" class="form-control" required>
+                    </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea name="deskripsi" id="edit-karya-galeri-deskripsi" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Ganti Foto Karya</label>
+                        <input type="file" id="edit-file-karya-galeri" class="form-control" accept="image/*">
+                        
+                        <input type="hidden" name="gambar" id="edit-karya-galeri-gambar">
+                        
+                        <div class="form-text text-muted fst-italic">
+                            <small>Biarkan kosong jika tidak ingin mengganti gambar.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark w-100">SIMPAN PERUBAHAN</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="modal fade" id="editGaleriKlinikModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" id="form-edit-galeri-klinik">
