@@ -1,13 +1,14 @@
 /* ADMIN JS - ULTIMATE IMAGE FIX (THUMBNAIL METHOD) */
 
 // URL GOOGLE SCRIPT (Pastikan URL ini sama dengan Web App URL Anda)
-const API_URL = 'https://script.google.com/macros/s/AKfycbxhWCeTGS61Z0EMSCGEVX8C2GeAw9X53uqN724zpeiNUaghvhiN52g7E0Q7mzQV8eLb/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbxtbrrQ1__pb8utXz6esM9TMTnFnPfmtKAzYaMG6CQmVbaCa09D4RbrFvMnLOGfhy_3/exec'; 
 
 // Cache Data Global
 let globalUsersData = [];
 let globalBeritaData = [];
 let globalPKBMData = [];
 let globalGaleriPKBMData = [];
+let globalGaleriKaryaData = [];
 let globalBannerData = [];
 let globalPejabatData = [];
 let globalKlinikData = [];
@@ -22,12 +23,13 @@ let globalWargaBinaan = [];
 let globalKepegawaian = [];
 
 // --- DEFINISI MODAL GLOBAL ---
-let modalEditBerita, modalCapaian, modalEditWB, modalEditKP, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
+let modalEditBerita, modalCapaian, modalEditWB, modalEditGaleriKarya, modalEditKP, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Inisialisasi Modal
     if(document.getElementById('editBeritaModal')) modalEditBerita = new bootstrap.Modal(document.getElementById('editBeritaModal'));
     if(document.getElementById('editGaleriPKBMModal')) modalEditGaleri = new bootstrap.Modal(document.getElementById('editGaleriPKBMModal'));
+    if(document.getElementById('editGaleriKaryaModal')) modalEditGaleriKarya = new bootstrap.Modal(document.getElementById('editGaleriKaryaModal'));
     if(document.getElementById('editBannerModal')) modalEditBanner = new bootstrap.Modal(document.getElementById('editBannerModal'));
     if(document.getElementById('loadingModal')) modalLoading = new bootstrap.Modal(document.getElementById('loadingModal'));
     if(document.getElementById('editPejabatModal')) modalEditPejabat = new bootstrap.Modal(document.getElementById('editPejabatModal'));
@@ -47,6 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if(modalEditWB) modalEditWB.hide();
     });
 
+    document.getElementById('form-karya-anak')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendData('galerikarya', new FormData(this), 'insert');
+});
+
+// Edit karya anak
+document.getElementById('form-edit-galeri-karya')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendData('galerikarya', new FormData(this), 'update');
+    if (typeof modalEditGaleriKarya !== 'undefined' && modalEditGaleriKarya) {
+        modalEditGaleriKarya.hide();
+    }
+});
     document.getElementById('form-update-kepegawaian')?.addEventListener('submit', function(e) {
         e.preventDefault();
         sendData('kepegawaian', new FormData(this), 'update');
@@ -179,6 +194,7 @@ async function initDashboard() {
         if(data.berita) { globalBeritaData = addRowIds(data.berita); renderBeritaTable(globalBeritaData); }
         if(data.pkbm) { globalPKBMData = addRowIds(data.pkbm); renderPKBMStats(globalPKBMData); }
         if(data.galeri_pkbm) { globalGaleriPKBMData = addRowIds(data.galeri_pkbm); renderPKBMGallery(globalGaleriPKBMData); }
+        if(data.galerikarya) { globalGaleriKaryaData = addRowIds(data.galerikarya); renderGaleriKarya(globalGaleriKaryaData); }
         if(data.banner) { globalBannerData = addRowIds(data.banner); renderBannerTable(globalBannerData); }
         if(data.klinik) { globalKlinikData = addRowIds(data.klinik); renderKlinikTable(globalKlinikData); renderKlinikChart(data.klinik[0]); }
         if(data.galeri_klinik) { renderGaleriKlinik(addRowIds(data.galeri_klinik)); }
@@ -870,6 +886,30 @@ function renderPKBMGallery(data) {
     tbody.innerHTML = html;
 }
 
+// ...existing code...
+function renderGaleriKarya(data) {
+    const tbody = document.querySelector('#table-karya-body');
+    if(!tbody) return;
+    let html = '';
+    data.slice().reverse().forEach(item => {
+        let img = convertDriveToDirectLink(item.gambar);
+        html += `<tr>
+            <td class="ps-4">
+                <img src="${img}" style="width:80px;height:60px;object-fit:cover;border-radius:8px;" onerror="this.onerror=null; this.src='https://placehold.co/120x80?text=Img';"><br>
+            </td>
+            <td>
+ <span class="fw-bold">${item.namakarya}</span>            </td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-warning me-1" onclick="openEditGaleriKaryaModal(${item.rowId})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteData('galerikarya', ${item.rowId})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    });
+    tbody.innerHTML = html || `<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-paint-brush fa-spin fa-2x mb-3"></i><br>Tidak ada karya.</td></tr>`;
+    document.getElementById('count-karya').innerText = data.length;
+}
+// ...existing code...
+
 function renderKlinikChart(klinik) {
     const ctx = document.getElementById('chartKlinikAdmin');
     if(!ctx) return;
@@ -1213,6 +1253,19 @@ window.openEditGaleriPKBMModal = function(rowId) {
     if(document.getElementById('edit-file-pkbm-galeri')) document.getElementById('edit-file-pkbm-galeri').value = '';
     if(modalEditGaleri) modalEditGaleri.show();
 }
+
+// ...existing code...
+window.openEditGaleriKaryaModal = function(rowId) {
+    const item = globalGaleriKaryaData.find(x => x.rowId == rowId);
+    if(!item) return;
+    document.getElementById('edit-karya-galeri-rowId').value = item.rowId;
+    document.getElementById('edit-karya-galeri-namakarya').value = item.namakarya || '';
+    document.getElementById('edit-karya-galeri-deskripsi').value = item.deskripsi || '';
+    document.getElementById('edit-karya-galeri-gambar').value = item.gambar || '';
+    document.getElementById('edit-file-karya-galeri').value = '';
+    if(modalEditGaleriKarya) modalEditGaleriKarya.show();
+}
+// ...existing code...
 
 window.openEditPejabatModal = function(rowId) {
     const item = globalPejabatData.find(x => x.rowId == rowId);
@@ -1632,6 +1685,10 @@ async function sendData(sheetName, formData, action = 'insert') {
             if(action === 'insert') filePromises.push(processFileField('file-galeri-pkbm', 'gambar', object));
             else filePromises.push(processFileField('edit-file-pkbm-galeri', 'gambar', object));
         }
+        else if (sheetName === 'galerikarya') {
+    if(action === 'insert') filePromises.push(processFileField('file-karya-anak', 'gambar', object));
+    else filePromises.push(processFileField('edit-file-karya-galeri', 'gambar', object));
+}
         else if (sheetName === 'Banner') {
             if(action === 'insert') filePromises.push(processFileField('file-banner', 'gambar', object));
             else filePromises.push(processFileField('edit-file-banner', 'gambar', object));
