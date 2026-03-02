@@ -163,10 +163,9 @@ async function login() {
 }
 
 function showDashboard() {
-   document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('dashboard-wrapper').style.display = 'block';
-    switchTab('berita'); // Paksa tampilan hanya ke tab berita setelah login
-    initDashboard();
+    initDashboard(); 
 }
 
 function logout() {
@@ -1979,6 +1978,7 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
 
