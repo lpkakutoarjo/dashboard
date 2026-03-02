@@ -152,9 +152,8 @@ async function login() {
             setTimeout(() => box.classList.remove('shake-animation'), 500);
         }
     } catch (error) {
-        console.error(error);
-        alert("Terjadi kesalahan koneksi saat login.");
-        // Reset CAPTCHA jika terjadi error koneksi
+        console.error("Detail Error:", error);
+        alert("Koneksi gagal: " + error.message); // Akan memunculkan alasan teknis kegagalan
         grecaptcha.reset();
     } finally {
         btnLogin.innerText = originalText;
@@ -165,7 +164,8 @@ async function login() {
 function showDashboard() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('dashboard-wrapper').style.display = 'block';
-    initDashboard(); 
+    switchTab('berita'); // Paksa tampilan hanya ke tab berita setelah login
+    initDashboard();
 }
 
 function logout() {
@@ -1978,6 +1978,7 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
 
