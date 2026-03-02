@@ -103,8 +103,22 @@ async function fetchUsers() {
 async function login() {
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
-    const errorEl = document.getElementById('login-error'); //
+    const errorEl = document.getElementById('login-error');
     
+    // 1. Ambil respon reCAPTCHA
+    const captchaResponse = grecaptcha.getResponse();
+
+    // 2. Validasi: Apakah user sudah mencentang CAPTCHA?
+    if (captchaResponse.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Verifikasi Diperlukan',
+            text: 'Silakan centang kotak "I\'m not a robot" terlebih dahulu.',
+            confirmButtonColor: '#0d6efd'
+        });
+        return; // Hentikan fungsi jika belum dicentang
+    }
+
     // Tampilkan loading saat mengecek
     const btnLogin = document.querySelector("button[onclick='login()']");
     const originalText = btnLogin.innerText;
@@ -124,15 +138,22 @@ async function login() {
 
         if (userFound) {
             sessionStorage.setItem('isLoggedIn', 'true'); 
-            showDashboard(); //
+            showDashboard(); 
         } else {
-            errorEl.style.display = 'block'; //
-            const box = document.querySelector('.login-box'); //
+            errorEl.style.display = 'block'; 
+            const box = document.querySelector('.login-box'); 
             box.classList.add('shake-animation');
+            
+            // 3. Reset CAPTCHA jika login gagal (Keamanan tambahan)
+            grecaptcha.reset(); 
+            
             setTimeout(() => box.classList.remove('shake-animation'), 500);
         }
     } catch (error) {
+        console.error(error);
         alert("Terjadi kesalahan koneksi saat login.");
+        // Reset CAPTCHA jika terjadi error koneksi
+        grecaptcha.reset();
     } finally {
         btnLogin.innerText = originalText;
         btnLogin.disabled = false;
@@ -1964,3 +1985,4 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
