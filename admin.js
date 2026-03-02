@@ -164,7 +164,6 @@ async function login() {
 function showDashboard() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('dashboard-wrapper').style.display = 'block';
-    switchTab('berita'); // Paksa tampilan hanya ke tab berita setelah login
     initDashboard();
 }
 
@@ -175,26 +174,11 @@ function logout() {
     }
 }
 
-function switchTab(tabId, event) {
-    // 1. Sembunyikan semua konten tab
+function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-    
-    // 2. Tampilkan tab yang dipilih
-    const targetTab = document.getElementById('tab-' + tabId);
-    if (targetTab) targetTab.style.display = 'block';
-
-    // 3. Update status menu di sidebar
+    document.getElementById('tab-' + tabId).style.display = 'block';
     document.querySelectorAll('#sidebar li').forEach(el => el.classList.remove('active'));
-    
-    if (event && event.currentTarget) {
-        // Jika dipanggil lewat klik tombol sidebar
-        event.currentTarget.parentElement.classList.add('active');
-    } else {
-        // Jika dipanggil otomatis lewat kode (saat login/refresh)
-        // Cari elemen menu yang sesuai dengan tabId dan beri class active
-        const sidebarLinks = document.querySelectorAll(`#sidebar a[onclick*="switchTab('${tabId}')"]`);
-        sidebarLinks.forEach(link => link.parentElement.classList.add('active'));
-    }
+    event.currentTarget.parentElement.classList.add('active');
 }
 
 document.getElementById('sidebarCollapse').addEventListener('click', function() {
@@ -1993,6 +1977,7 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
 
