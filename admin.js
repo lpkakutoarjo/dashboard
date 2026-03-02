@@ -175,11 +175,26 @@ function logout() {
     }
 }
 
-function switchTab(tabId) {
+function switchTab(tabId, event) {
+    // 1. Sembunyikan semua konten tab
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-    document.getElementById('tab-' + tabId).style.display = 'block';
+    
+    // 2. Tampilkan tab yang dipilih
+    const targetTab = document.getElementById('tab-' + tabId);
+    if (targetTab) targetTab.style.display = 'block';
+
+    // 3. Update status menu di sidebar
     document.querySelectorAll('#sidebar li').forEach(el => el.classList.remove('active'));
-    event.currentTarget.parentElement.classList.add('active');
+    
+    if (event && event.currentTarget) {
+        // Jika dipanggil lewat klik tombol sidebar
+        event.currentTarget.parentElement.classList.add('active');
+    } else {
+        // Jika dipanggil otomatis lewat kode (saat login/refresh)
+        // Cari elemen menu yang sesuai dengan tabId dan beri class active
+        const sidebarLinks = document.querySelectorAll(`#sidebar a[onclick*="switchTab('${tabId}')"]`);
+        sidebarLinks.forEach(link => link.parentElement.classList.add('active'));
+    }
 }
 
 document.getElementById('sidebarCollapse').addEventListener('click', function() {
@@ -1978,6 +1993,7 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
 
