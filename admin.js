@@ -88,7 +88,8 @@ document.getElementById('form-edit-galeri-karya')?.addEventListener('submit', fu
 
 async function fetchUsers() {
             try {
-                const response = await fetch(API_URL);
+                const currentOrigin = encodeURIComponent(window.location.origin);
+                const response = await fetch(API_URL + '?t=' + new Date().getTime() + '&origin=' + currentOrigin);
                 const data = await response.json();
                 if (data.users) {
                     globalUsersData = data.users;
@@ -128,7 +129,8 @@ async function login() {
     try {
         // Ambil data terbaru dari API jika globalUsersData kosong
         if (globalUsersData.length === 0) {
-            const response = await fetch(API_URL);
+            const currentOrigin = encodeURIComponent(window.location.origin);
+            const response = await fetch(API_URL + '?t=' + new Date().getTime() + '&origin=' + currentOrigin);
             const data = await response.json();
             globalUsersData = data.users || [];
         }
@@ -205,7 +207,8 @@ function addRowIds(arr) {
 async function initDashboard() {
     const statusEl = document.getElementById('db-status');
     try {
-        const response = await fetch(API_URL);
+        const currentOrigin = encodeURIComponent(window.location.origin);
+        const response = await fetch(API_URL + '?t=' + new Date().getTime() + '&origin=' + currentOrigin);
         const data = await response.json();
         console.log('API Response:', data); 
 
@@ -349,7 +352,8 @@ function openEditKepegawaian(index) {
 }
 async function loadLayananKunjungan() {
     try {
-        const res = await fetch(API_URL); 
+        const currentOrigin = encodeURIComponent(window.location.origin);
+        const res = await fetch(API_URL + '?t=' + new Date().getTime() + '&origin=' + currentOrigin); 
         const json = await res.json();  
         
         const dataTarget = json.layanankunjungan || json.LayananKunjungan || [];
@@ -1985,5 +1989,6 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
