@@ -169,21 +169,10 @@ function showDashboard() {
 }
 
 function logout() {
-    Swal.fire({
-        title: 'Konfirmasi Keluar',
-        text: "Apakah Anda yakin ingin mengakhiri sesi ini?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Logout!',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            sessionStorage.removeItem('isLoggedIn');
-            location.reload();
-        }
-    })
+    if (confirm("Apakah Anda yakin ingin keluar dari panel admin?")) {
+        sessionStorage.removeItem('isLoggedIn');
+        location.reload();
+    }
 }
 
 function switchTab(tabId) {
@@ -1989,6 +1978,7 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
 
