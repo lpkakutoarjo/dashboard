@@ -165,6 +165,11 @@ function showDashboard() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('dashboard-wrapper').style.display = 'block';
     initDashboard();
+
+    // Tambahan: pastikan hanya tab berita yang tampil saat pertama kali dashboard muncul
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    const beritaTab = document.getElementById('tab-berita');
+    if (beritaTab) beritaTab.style.display = 'block';
 }
 
 function logout() {
@@ -1977,6 +1982,7 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+
 
 
 
