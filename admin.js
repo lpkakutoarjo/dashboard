@@ -99,8 +99,7 @@ async function fetchUsers() {
             }
         }
 
-
-// --- 1. OTENTIKASI ---
+// --- 1. OTENTIKASI (UPDATED SECURE LOGIN) ---
 async function login() {
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
@@ -127,33 +126,40 @@ async function login() {
     btnLogin.disabled = true;
 
     try {
-        // Ambil data terbaru dari API jika globalUsersData kosong
-        if (globalUsersData.length === 0) {
-            const currentOrigin = encodeURIComponent(window.location.origin);
-            const response = await fetch(API_URL + '?t=' + new Date().getTime() + '&origin=' + currentOrigin);
-            const data = await response.json();
-            globalUsersData = data.users || [];
-        }
+        // 3. GUNAKAN METODE POST KE SERVER UNTUK LOGIN YANG AMAN
+        const formData = new FormData();
+        formData.append('action', 'login');
+        formData.append('data', JSON.stringify({
+            username: u,
+            password: p // Kirim password asli (kta11), biarkan server GAS yang mengenkripsi dan mencocokkan
+        }));
 
-        // Cari kecocokan di data sheet
-        const userFound = globalUsersData.find(user => user.username === u && user.password === p);
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
 
-        if (userFound) {
+        // 4. Cek respon dari Google Apps Script
+        if (result.status === 'success') {
             sessionStorage.setItem('isLoggedIn', 'true'); 
             showDashboard(); 
         } else {
+            // Jika salah, tampilkan error
             errorEl.style.display = 'block'; 
+            errorEl.innerText = result.message || "Username atau Password Salah";
             const box = document.querySelector('.login-box'); 
             box.classList.add('shake-animation');
             
-            // 3. Reset CAPTCHA jika login gagal (Keamanan tambahan)
+            // Reset CAPTCHA jika login gagal
             grecaptcha.reset(); 
             
             setTimeout(() => box.classList.remove('shake-animation'), 500);
         }
     } catch (error) {
         console.error("Detail Error:", error);
-        alert("Koneksi gagal: " + error.message); // Akan memunculkan alasan teknis kegagalan
+        alert("Koneksi gagal: " + error.message);
         grecaptcha.reset();
     } finally {
         btnLogin.innerText = originalText;
