@@ -1,7 +1,7 @@
 /* ADMIN JS - ULTIMATE IMAGE FIX (THUMBNAIL METHOD) */
 
 // URL GOOGLE SCRIPT (Pastikan URL ini sama dengan Web App URL Anda)
-const API_URL = 'https://script.google.com/macros/s/AKfycbzBxjhhYzF_Q-LLiZGtnqb4OaBk2QoSj-G_nfQyReyJdl6fkx8ZPUgSRsYd9B8_y03A/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycby_0QXV9gdA7r3JHIkOJZdeYbPIsFsFvKg1gB9ebRbcRRaNWexi6T2eouT60uh8G4h1/exec'; 
 
 // Cache Data Global
 let globalUsersData = [];
