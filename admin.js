@@ -21,7 +21,7 @@ let globalIKPAData = [];
 let globalSMARTData = [];
 let globalWargaBinaan = [];
 let globalKepegawaian = [];
-
+let globalStrukturData = [];
 // --- DEFINISI MODAL GLOBAL ---
 let modalEditBerita, modalCapaian, modalEditWB, modalEditGaleriKarya, modalEditKP, modalEditGaleri, modalEditBanner, modalLoading, modalEditPejabat, modalEditInfoPublik, modalEditGaleriKlinik, modalEditReintegrasi;
 
@@ -232,7 +232,10 @@ async function initDashboard() {
             globalWargaBinaan = addRowIds(data.wargabinaan);
             renderRekapWargaBinaan(globalWargaBinaan);
         }
-
+if(data.struktur) { 
+        globalStrukturData = addRowIds(data.struktur); 
+        renderStrukturCard(globalStrukturData); 
+    }
         // Ambil data dari sheet kepegawaian
         if (data.kepegawaian) {
             globalKepegawaian = addRowIds(data.kepegawaian);
@@ -1762,6 +1765,24 @@ async function sendData(sheetName, formData, action = 'insert') {
             }
             delete object.gambar;
         }
+            else if (sheetName === 'Struktur') {
+    // Struktur biasanya hanya satu gambar, jadi kita asumsikan ini selalu mode 'update'
+    const fileInputId = 'file-struktur';
+    const fileInput = document.getElementById(fileInputId);
+    
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        // Jika user memilih file baru, proses upload ke kolom 'image'
+        filePromises.push(processFileField(fileInputId, 'image', object));
+    } else {
+        // Jika tidak ada file baru, gunakan URL lama dari input hidden
+        const oldUrlInput = document.getElementById('edit-url-struktur-lama');
+        object.image = oldUrlInput ? oldUrlInput.value : '';
+    }
+    
+    // Pastikan key object sesuai dengan header di Spreadsheet (misal: 'image')
+    // Jika di form HTML name-nya 'gambar', kita hapus agar tidak double
+    delete object.gambar; 
+}
                 // --- [FIX] BAGIAN KHUSUS SOP LAYANAN KUNJUNGAN ---
         else if (sheetName === 'LayananKunjungan') {
             if (action === 'update') {
@@ -1988,8 +2009,47 @@ document.getElementById('form-kunjungan')?.addEventListener('submit', function(e
         if (instance) instance.hide();
     }
 });
+function renderStrukturCard(data) {
+    const previewImg = document.getElementById('preview-struktur');
+    const inputRowId = document.getElementById('edit-struktur-rowId');
+    const inputUrlLama = document.getElementById('edit-url-struktur-lama');
 
+    if (data && data.length > 0) {
+        const item = data[0]; // Mengambil baris pertama (asumsi baris 2 di sheet)
+        const imgUrl = convertDriveToDirectLink(item.image || item.gambar);
+        
+        if(previewImg) previewImg.src = imgUrl;
+        if(inputRowId) inputRowId.value = item.rowId || 2;
+        if(inputUrlLama) inputUrlLama.value = item.image || item.gambar || '';
+    }
+}
+document.getElementById('form-update-struktur')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    const fileInput = document.getElementById('file-struktur');
+    
+    if (fileInput.files.length === 0) {
+        Swal.fire('Peringatan', 'Pilih file gambar terlebih dahulu!', 'warning');
+        return;
+    }
 
+    // Ubah teks tombol sementara
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+
+    // Buat FormData manual untuk diproses oleh fungsi sendData universal Anda
+    const fd = new FormData(this);
+    
+    // Panggil fungsi sendData yang sudah ada di file Anda
+    // 'Struktur' adalah nama sheet, 'update' karena kita menimpa baris yang ada
+    await sendData('Struktur', fd, 'update');
+
+    // Reset tombol
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+    fileInput.value = '';
+});
 
 
 
